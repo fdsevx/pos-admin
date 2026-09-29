@@ -29,7 +29,7 @@ export default function LoginPage() {
 
       if (!response.ok || !data.success) {
         // Cek apakah pesan error terkait verifikasi status (is_active)
-        const msg = data.message || data.error || 'Login gagal. Periksa kembali username dan password Anda.';
+        const msg = data.message || (typeof data.error === 'string' ? data.error : data.error?.message) || 'Login gagal. Periksa kembali username dan password Anda.';
         if (msg.toLowerCase().includes('verifikasi') || msg.toLowerCase().includes('active') || msg.toLowerCase().includes('aktif') || data.is_active === 0 || data.is_active === false) {
            setErrorMsg('Akun Anda belum diverifikasi oleh superadmin.');
         } else {
