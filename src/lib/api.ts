@@ -1,4 +1,18 @@
-import { ApiResponse, ChartDataPoint, MonthlyReport, Product, StockOpname, Expense, Account, JournalEntry } from '@/types';
+import {
+  ApiResponse,
+  ChartDataPoint,
+  MonthlyReport,
+  Product,
+  StockOpname,
+  Expense,
+  Account,
+  JournalEntry,
+  Category,
+  Customer,
+  OutletSettings,
+  Purchase,
+  Transaction,
+} from '@/types';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pos-backend.fdsevx.workers.dev/api';
 
@@ -142,15 +156,215 @@ export async function getStockOpnames(outletSlug: string): Promise<{ items: Stoc
   return apiFetch<{ items: StockOpname[]; total: number }>(`/v1/${outletSlug}/opname`);
 }
 
-// ----------------- Accounting & Double Entry API -----------------
-export async function getAccounts(outletSlug: string): Promise<Account[]> {
+// ----------------- Outlets & Settings API -----------------
+export async function getOutletSettings(outletSlug: string): Promise<OutletSettings> {
+  return apiFetch<OutletSettings>(`/v1/${outletSlug}/settings`);
+}
+
+export async function updateOutletSettings(outletSlug: string, payload: Partial<OutletSettings>): Promise<OutletSettings> {
+  return apiFetch<OutletSettings>(`/v1/${outletSlug}/settings`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+// ----------------- Categories API -----------------
+export async function getCategories(outletSlug: string): Promise<Category[]> {
   if (outletSlug === 'ALL') return [];
-  return apiFetch<Account[]>(`/v1/${outletSlug}/accounting/ledger`); // Dummy for now, actual backend has ledger, etc.
+  return apiFetch<Category[]>(`/v1/${outletSlug}/categories`);
+}
+
+export async function createCategory(outletSlug: string, payload: { name: string; sort_order?: number }): Promise<Category> {
+  return apiFetch<Category>(`/v1/${outletSlug}/categories`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCategory(outletSlug: string, id: string, payload: { name?: string; sort_order?: number }): Promise<Category> {
+  return apiFetch<Category>(`/v1/${outletSlug}/categories/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCategory(outletSlug: string, id: string): Promise<void> {
+  return apiFetch<void>(`/v1/${outletSlug}/categories/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+// ----------------- CRM & Pelanggan API -----------------
+export async function getCustomers(outletSlug: string): Promise<Customer[]> {
+  if (outletSlug === 'ALL') return [];
+  return apiFetch<Customer[]>(`/v1/${outletSlug}/customers`);
+}
+
+export async function createCustomer(outletSlug: string, payload: { name: string; phone?: string; member_type?: 'regular' | 'vip' }): Promise<Customer> {
+  return apiFetch<Customer>(`/v1/${outletSlug}/customers`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCustomer(outletSlug: string, id: string, payload: Partial<Customer>): Promise<Customer> {
+  return apiFetch<Customer>(`/v1/${outletSlug}/customers/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCustomer(outletSlug: string, id: string): Promise<void> {
+  return apiFetch<void>(`/v1/${outletSlug}/customers/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function getCustomerHistory(outletSlug: string, id: string): Promise<Transaction[]> {
+  return apiFetch<Transaction[]>(`/v1/${outletSlug}/customers/${id}/history`);
+}
+
+// ----------------- Transaksi Kasir & Void API -----------------
+export async function createTransactionSale(outletSlug: string, payload: any): Promise<any> {
+  return apiFetch<any>(`/v1/${outletSlug}/transactions`, {
+    method: 'POST',
+    headers: {
+      'x-device-id': payload.device_id || 'admin-browser-pos',
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function voidTransaction(outletSlug: string, id: string, reason: string): Promise<any> {
+  return apiFetch<any>(`/v1/${outletSlug}/transactions/${id}/void`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function getTransactionsList(outletSlug: string, from?: string, to?: string): Promise<Transaction[]> {
+  if (outletSlug === 'ALL') return [];
+  const params = new URLSearchParams();
+  if (from) params.append('from', from);
+  if (to) params.append('to', to);
+  return apiFetch<Transaction[]>(`/v1/${outletSlug}/reports/export?${params.toString()}`);
+}
+
+// ----------------- Pembelian (Purchase) & Pengeluaran (Expense) API -----------------
+export async function getExpenses(outletSlug: string): Promise<Expense[]> {
+  if (outletSlug === 'ALL') return [];
+  return apiFetch<Expense[]>(`/v1/${outletSlug}/expenses`);
+}
+
+export async function createExpense(outletSlug: string, payload: { category: string; description: string; amount: string; expense_date: string }): Promise<Expense> {
+  return apiFetch<Expense>(`/v1/${outletSlug}/expenses`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getPurchases(outletSlug: string): Promise<Purchase[]> {
+  if (outletSlug === 'ALL') return [];
+  return apiFetch<Purchase[]>(`/v1/${outletSlug}/purchases`);
+}
+
+export async function createPurchase(outletSlug: string, payload: any): Promise<Purchase> {
+  return apiFetch<Purchase>(`/v1/${outletSlug}/purchases`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+// ----------------- Accounting & Double Entry API -----------------
+export async function getCOA(outletSlug: string): Promise<Account[]> {
+  if (outletSlug === 'ALL') return [];
+  return apiFetch<Account[]>(`/v1/${outletSlug}/accounting/coa`);
+}
+
+export async function createCOA(outletSlug: string, payload: Partial<Account>): Promise<Account> {
+  return apiFetch<Account>(`/v1/${outletSlug}/accounting/coa`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function createManualJournal(outletSlug: string, payload: any): Promise<any> {
+  return apiFetch<any>(`/v1/${outletSlug}/accounting/journals/manual`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getGeneralLedger(outletSlug: string, from?: string, to?: string): Promise<any> {
+  if (outletSlug === 'ALL') return [];
+  const params = new URLSearchParams();
+  if (from) params.append('from', from);
+  if (to) params.append('to', to);
+  return apiFetch<any>(`/v1/${outletSlug}/accounting/reports/general-ledger?${params.toString()}`);
+}
+
+export async function getTrialBalance(outletSlug: string, from?: string, to?: string): Promise<any> {
+  if (outletSlug === 'ALL') return [];
+  const params = new URLSearchParams();
+  if (from) params.append('from', from);
+  if (to) params.append('to', to);
+  return apiFetch<any>(`/v1/${outletSlug}/accounting/reports/trial-balance?${params.toString()}`);
+}
+
+export async function getIncomeStatement(outletSlug: string, from?: string, to?: string): Promise<any> {
+  if (outletSlug === 'ALL') return null;
+  const params = new URLSearchParams();
+  if (from) params.append('from', from);
+  if (to) params.append('to', to);
+  return apiFetch<any>(`/v1/${outletSlug}/accounting/reports/income-statement?${params.toString()}`);
+}
+
+export async function getBalanceSheet(outletSlug: string, to?: string): Promise<any> {
+  if (outletSlug === 'ALL') return null;
+  const params = new URLSearchParams();
+  if (to) params.append('to', to);
+  return apiFetch<any>(`/v1/${outletSlug}/accounting/reports/balance-sheet?${params.toString()}`);
+}
+
+// ----------------- Manajemen Pegawai (Users) API -----------------
+export async function getUsers(): Promise<any[]> {
+  return apiFetch<any[]>('/v1/users');
+}
+
+export async function createUser(payload: { username: string; password: string; display_name: string; role: string; outlet_ids?: string[] }): Promise<any> {
+  return apiFetch<any>('/v1/users', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateUser(id: string, payload: any): Promise<any> {
+  return apiFetch<any>(`/v1/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function resetUserPassword(id: string, new_password: string): Promise<any> {
+  return apiFetch<any>(`/v1/users/${id}/reset-password`, {
+    method: 'PUT',
+    body: JSON.stringify({ new_password }),
+  });
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  return apiFetch<void>(`/v1/users/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function getAccounts(outletSlug: string): Promise<Account[]> {
+  return getCOA(outletSlug);
 }
 
 export async function getJournals(outletSlug: string): Promise<{ items: JournalEntry[]; total: number }> {
-  if (outletSlug === 'ALL') return { items: [], total: 0 };
-  return apiFetch<{ items: JournalEntry[]; total: number }>(`/v1/${outletSlug}/accounting/ledger`);
+  const gl = await getGeneralLedger(outletSlug);
+  return { items: gl || [], total: gl?.length || 0 };
 }
 
 export function removeAuthToken() {

@@ -10,13 +10,11 @@ import {
   Scale,
   Users,
   Settings,
-  ChevronRight,
   X,
-  CreditCard,
-  Building,
-  Target,
   FileSpreadsheet,
   LogOut,
+  ShoppingCart,
+  ShieldCheck,
 } from 'lucide-react';
 import { useOutlet } from '@/context/OutletContext';
 import { removeAuthToken } from '@/lib/api';
@@ -27,15 +25,14 @@ export default function Sidebar() {
   const { isMobileMenuOpen, setIsMobileMenuOpen } = useOutlet();
 
   const menuItems = [
-    { label: 'Dasbor', href: '/', icon: LayoutDashboard },
-    { label: 'Stok Produk', href: '/inventory', icon: Package },
-    { label: 'Pengeluaran & Export', href: '/expenses', icon: FileSpreadsheet },
+    { label: 'Dasbor & Laporan', href: '/', icon: LayoutDashboard },
+    { label: 'Katalog & Stok', href: '/inventory', icon: Package },
+    { label: 'Transaksi Kasir', href: '/transactions', icon: ShoppingCart },
+    { label: 'Pelanggan (CRM)', href: '/customers', icon: Users },
+    { label: 'Pembelian & Biaya', href: '/expenses', icon: FileSpreadsheet },
     { label: 'Double Entry', href: '/accounting', icon: Scale },
-    { label: 'Kasir & Staf', href: '/users', icon: Users, hasSub: true },
-    { label: 'Pelanggan', href: '#', icon: Users },
-    { label: 'Perbankan', href: '#', icon: CreditCard, hasSub: true },
-    { label: 'Target', href: '#', icon: Target },
-    { label: 'Pengaturan', href: '#', icon: Settings },
+    { label: 'Kasir & Staf', href: '/users', icon: ShieldCheck },
+    { label: 'Pengaturan Outlet', href: '/settings', icon: Settings },
   ];
 
   const handleLinkClick = () => {
@@ -74,8 +71,8 @@ export default function Sidebar() {
               <div className="font-extrabold text-slate-800 text-lg tracking-tight">
                 POS BWX
               </div>
-              <div className="text-[10px] text-slate-400 -mt-1 font-medium">
-                By Langit POS
+              <div className="text-[10px] text-teal-600 -mt-1 font-semibold uppercase tracking-wider">
+                by danz
               </div>
             </div>
           </div>
@@ -115,14 +112,6 @@ export default function Sidebar() {
                     />
                     <span>{item.label}</span>
                   </div>
-
-                  {item.hasSub && (
-                    <ChevronRight
-                      className={`w-4 h-4 ${
-                        isActive ? 'text-white' : 'text-slate-300 group-hover:text-slate-400'
-                      }`}
-                    />
-                  )}
                 </Link>
               );
             })}

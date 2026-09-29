@@ -108,18 +108,6 @@ export default function Header() {
             <option value={2025}>2025</option>
           </select>
         </div>
-
-        {/* Switch to HRM Pill (POS BWX Style) */}
-        <button className="hidden xl:inline-flex items-center gap-2 px-3.5 py-1.5 border border-slate-200 text-xs font-medium text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
-          Switch to POS BWX HRM
-        </button>
-
-        {/* Language selector (POS BWX Style) */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 text-xs font-medium text-slate-600 rounded-xl cursor-pointer hover:bg-slate-50">
-          <Globe className="w-3.5 h-3.5 text-slate-400" />
-          <span>Bahasa Indonesia</span>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-        </div>
       </div>
     </header>
   );

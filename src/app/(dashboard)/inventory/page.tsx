@@ -24,14 +24,18 @@ import {
   updateProduct,
   deleteProduct,
   createStockOpname,
+  getCategories,
+  createCategory,
+  deleteCategory,
   formatRupiah,
 } from '@/lib/api';
-import { Product } from '@/types';
+import { Product, Category } from '@/types';
 
 export default function InventoryPage() {
   const { outletFilter } = useOutlet();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -39,7 +43,10 @@ export default function InventoryPage() {
   // Modals state
   const [isOpnameModalOpen, setIsOpnameModalOpen] = useState<boolean>(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [newCatName, setNewCatName] = useState<string>('');
+  const [catLoading, setCatLoading] = useState<boolean>(false);
 
   // Form states
   const [opnameActualStock, setOpnameActualStock] = useState<number>(0);
@@ -59,11 +66,25 @@ export default function InventoryPage() {
     outlet_type: 'RESTORAN' as 'RESTORAN' | 'CAFE',
   });
 
+  const loadCategories = async () => {
+    if (outletFilter === 'ALL') return;
+    try {
+      const data = await getCategories(outletFilter);
+      setCategories(data || []);
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
-      const data = await getProducts(outletFilter, selectedCategory);
-      setProducts(data || []);
+      const [prodData, catData] = await Promise.all([
+        getProducts(outletFilter, selectedCategory),
+        getCategories(outletFilter).catch(() => []),
+      ]);
+      setProducts(prodData || []);
+      setCategories(catData || []);
     } catch (err) {
       console.error('Failed to load products:', err);
     } finally {
@@ -74,6 +95,31 @@ export default function InventoryPage() {
   useEffect(() => {
     loadData();
   }, [outletFilter, selectedCategory]);
+
+  const handleAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim() || outletFilter === 'ALL') return;
+    setCatLoading(true);
+    try {
+      await createCategory(outletFilter, { name: newCatName.trim() });
+      setNewCatName('');
+      loadCategories();
+    } catch (err) {
+      alert('Gagal menambah kategori');
+    } finally {
+      setCatLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('Hapus kategori ini?')) return;
+    try {
+      await deleteCategory(outletFilter, id);
+      loadCategories();
+    } catch (err) {
+      alert('Gagal menghapus kategori');
+    }
+  };
 
   // Filtered products by search
   const filteredProducts = products.filter(
@@ -187,6 +233,12 @@ export default function InventoryPage() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
+            onClick={() => setIsCategoryModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold rounded-xl transition-colors shadow-sm"
+          >
+            <span>Kelola Kategori</span>
+          </button>
+          <button
             onClick={() => setIsProductModalOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2.5 bg-teal-500 text-white text-xs sm:text-sm font-semibold rounded-xl hover:bg-teal-600 transition-colors shadow-sm"
           >
@@ -274,10 +326,19 @@ export default function InventoryPage() {
             className="w-full bg-slate-50 border border-slate-200 text-xs sm:text-sm font-medium text-slate-700 rounded-xl px-3.5 py-2.5 outline-none cursor-pointer focus:border-teal-500"
           >
             <option value="">Semua Kategori</option>
-            <option value="Makanan">Makanan</option>
-            <option value="Minuman">Minuman</option>
-            <option value="Makanan Utama">Makanan Utama</option>
-            <option value="Snack">Snack</option>
+            {categories.length > 0 ? (
+              categories.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.name}
+                </option>
+              ))
+            ) : (
+              <>
+                <option value="Makanan">Makanan</option>
+                <option value="Minuman">Minuman</option>
+                <option value="Snack">Snack</option>
+              </>
+            )}
           </select>
         </div>
 
@@ -717,6 +778,70 @@ export default function InventoryPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Category Management Modal */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-md border border-slate-100 shadow-2xl p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-slate-800 text-lg">Kelola Kategori Menu</h3>
+              <button
+                onClick={() => setIsCategoryModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddCategory} className="flex gap-2">
+              <input
+                type="text"
+                required
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                placeholder="Nama kategori baru..."
+                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-teal-500 outline-none"
+              />
+              <button
+                type="submit"
+                disabled={catLoading || !newCatName.trim()}
+                className="px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+              >
+                {catLoading ? '...' : 'Tambah'}
+              </button>
+            </form>
+
+            <div className="max-h-60 overflow-y-auto space-y-2 pt-2 divide-y divide-slate-50">
+              {categories.length === 0 ? (
+                <div className="py-6 text-center text-slate-400 text-xs">
+                  Belum ada kategori custom.
+                </div>
+              ) : (
+                categories.map((c) => (
+                  <div key={c.id} className="pt-2 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-800">{c.name}</span>
+                    <button
+                      onClick={() => handleDeleteCategory(c.id)}
+                      className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="pt-2 flex justify-end border-t border-slate-100">
+              <button
+                onClick={() => setIsCategoryModalOpen(false)}
+                className="px-5 py-2 bg-slate-800 text-white rounded-xl text-xs font-semibold hover:bg-slate-900"
+              >
+                Selesai
+              </button>
+            </div>
           </div>
         </div>
       )}
