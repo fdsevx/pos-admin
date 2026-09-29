@@ -27,7 +27,7 @@ export default function LoginPage() {
       
       const data = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (!response.ok) {
         // Cek apakah pesan error terkait verifikasi status (is_active)
         const msg = data.message || (typeof data.error === 'string' ? data.error : data.error?.message) || 'Login gagal. Periksa kembali username dan password Anda.';
         if (msg.toLowerCase().includes('verifikasi') || msg.toLowerCase().includes('active') || msg.toLowerCase().includes('aktif') || data.is_active === 0 || data.is_active === false) {
@@ -39,8 +39,8 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.data?.token) {
-        setAuthToken(data.data.token);
+      if (data.tokens?.access_token) {
+        setAuthToken(data.tokens.access_token);
       }
       
       router.push('/');

@@ -35,7 +35,7 @@ export default function RegisterPage() {
       
       const data = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (!response.ok) {
         setErrorMsg(data.message || data.error || 'Pendaftaran gagal. Silakan coba lagi.');
         setLoading(false);
         return;

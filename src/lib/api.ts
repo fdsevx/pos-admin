@@ -63,8 +63,8 @@ export async function loginAdmin(username: string = 'admin', password: string = 
     body: JSON.stringify({ username, password }),
   });
   const data = await response.json();
-  if (data.success && data.data?.token) {
-    setAuthToken(data.data.token);
+  if (data.tokens?.access_token) {
+    setAuthToken(data.tokens.access_token);
   }
   return data;
 }
