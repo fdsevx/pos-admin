@@ -103,7 +103,7 @@ export default function InventoryPage() {
 
     try {
       // 1. Submit stock opname
-      await createStockOpname({
+      await createStockOpname(outletFilter, {
         product_id: selectedProduct.id,
         actual_stock: Number(opnameActualStock),
         notes: opnameNotes,
@@ -114,7 +114,7 @@ export default function InventoryPage() {
         opnameNewPrice !== selectedProduct.price ||
         opnameNewCogs !== selectedProduct.cogs
       ) {
-        await updateProduct(selectedProduct.id, {
+        await updateProduct(outletFilter, selectedProduct.id, {
           price: opnameNewPrice,
           cogs: opnameNewCogs,
         });
@@ -130,7 +130,7 @@ export default function InventoryPage() {
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createProduct(productForm);
+      await createProduct(outletFilter, productForm);
       setIsProductModalOpen(false);
       setProductForm({
         name: '',
@@ -152,7 +152,7 @@ export default function InventoryPage() {
   const handleDeleteProduct = async (id: string, name: string) => {
     if (confirm(`Yakin ingin menghapus produk "${name}"?`)) {
       try {
-        await deleteProduct(id);
+        await deleteProduct(outletFilter, id);
         loadData();
       } catch (err: any) {
         alert(`Gagal menghapus produk: ${err.message}`);
