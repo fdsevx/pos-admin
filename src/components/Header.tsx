@@ -22,6 +22,7 @@ export default function Header() {
     selectedYear,
     setSelectedYear,
     setIsMobileMenuOpen,
+    outlets,
   } = useOutlet();
 
   const monthNames = [
@@ -75,8 +76,11 @@ export default function Header() {
             className="bg-transparent text-xs sm:text-sm font-semibold text-slate-700 outline-none cursor-pointer"
           >
             <option value="ALL">Semua Outlet</option>
-            <option value="RESTORAN">Restoran</option>
-            <option value="CAFE">Cafe</option>
+            {outlets?.map(outlet => (
+              <option key={outlet.id} value={outlet.slug}>
+                {outlet.name}
+              </option>
+            ))}
           </select>
         </div>
 

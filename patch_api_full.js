@@ -1,4 +1,5 @@
-import { ApiResponse, ChartDataPoint, MonthlyReport, Product, StockOpname, Expense, Account, JournalEntry } from '@/types';
+const fs = require('fs');
+let code = `import { ApiResponse, ChartDataPoint, MonthlyReport, Product, StockOpname, Expense, Account, JournalEntry } from '@/types';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pos-backend.fdsevx.workers.dev/api';
 
@@ -37,18 +38,18 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
   const token = getAuthToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(token ? { Authorization: \`Bearer \${token}\` } : {}),
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(\`\${API_BASE_URL}\${endpoint}\`, {
     ...options,
     headers,
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || errorData.error?.message || errorData.error || `HTTP error ${response.status}`);
+    throw new Error(errorData.message || errorData.error?.message || errorData.error || \`HTTP error \${response.status}\`);
   }
 
   const result: any = await response.json();
@@ -60,7 +61,7 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
 
 // ----------------- Auth API -----------------
 export async function loginAdmin(username: string = 'admin', password: string = 'admin123') {
-  const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
+  const response = await fetch(\`\${API_BASE_URL}/v1/auth/login\`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
@@ -78,25 +79,25 @@ export async function getOutletsList() {
 
 // ----------------- Reports & Dashboard API -----------------
 export async function getMonthlyReport(outletSlug: string, month: number = 9, year: number = 2026): Promise<MonthlyReport> {
-  const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+  const monthStr = \`\${year}-\${String(month).padStart(2, '0')}\`;
   const endpoint = outletSlug === 'ALL' 
-    ? `/v1/all/reports/monthly?month=${monthStr}` 
-    : `/v1/${outletSlug}/reports/monthly?month=${monthStr}`;
+    ? \`/v1/all/reports/monthly?month=\${monthStr}\` 
+    : \`/v1/\${outletSlug}/reports/monthly?month=\${monthStr}\`;
   
   return apiFetch<MonthlyReport>(endpoint);
 }
 
 export async function getChartData(outletSlug: string, period: 'daily' | 'monthly' = 'daily', month: number = 9, year: number = 2026): Promise<ChartDataPoint[]> {
-  const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+  const monthStr = \`\${year}-\${String(month).padStart(2, '0')}\`;
   
   // Backend allReportRouter currently doesn't have /chart, so we return empty if ALL
   if (outletSlug === 'ALL') return [];
   
-  return apiFetch<ChartDataPoint[]>(`/v1/${outletSlug}/reports/chart?month=${monthStr}`);
+  return apiFetch<ChartDataPoint[]>(\`/v1/\${outletSlug}/reports/chart?month=\${monthStr}\`);
 }
 
 export function getExportUrl(format: 'pdf' | 'excel', month: number = 9, year: number = 2026, outletSlug: string = 'ALL'): string {
-  return `${API_BASE_URL}/v1/${outletSlug}/reports/export?format=${format}&month=${month}&year=${year}`;
+  return \`\${API_BASE_URL}/v1/\${outletSlug}/reports/export?format=\${format}&month=\${month}&year=\${year}\`;
 }
 
 // ----------------- Products / Inventory API -----------------
@@ -105,33 +106,33 @@ export async function getProducts(outletSlug: string, category?: string): Promis
   const params = new URLSearchParams();
   if (category) params.append('category', category);
 
-  const query = params.toString() ? `?${params.toString()}` : '';
-  return apiFetch<Product[]>(`/v1/${outletSlug}/products${query}`);
+  const query = params.toString() ? \`?\${params.toString()}\` : '';
+  return apiFetch<Product[]>(\`/v1/\${outletSlug}/products\${query}\`);
 }
 
 export async function createProduct(outletSlug: string, payload: Partial<Product>): Promise<Product> {
-  return apiFetch<Product>(`/v1/${outletSlug}/products`, {
+  return apiFetch<Product>(\`/v1/\${outletSlug}/products\`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export async function updateProduct(outletSlug: string, id: string, payload: Partial<Product>): Promise<Product> {
-  return apiFetch<Product>(`/v1/${outletSlug}/products/${id}`, {
+  return apiFetch<Product>(\`/v1/\${outletSlug}/products/\${id}\`, {
     method: 'PUT',
     body: JSON.stringify(payload),
   });
 }
 
 export async function deleteProduct(outletSlug: string, id: string): Promise<void> {
-  return apiFetch<void>(`/v1/${outletSlug}/products/${id}`, {
+  return apiFetch<void>(\`/v1/\${outletSlug}/products/\${id}\`, {
     method: 'DELETE',
   });
 }
 
 // ----------------- Stock Opname API -----------------
 export async function createStockOpname(outletSlug: string, payload: { product_id: string; actual_stock: number; notes: string }): Promise<StockOpname> {
-  return apiFetch<StockOpname>(`/v1/${outletSlug}/opname`, {
+  return apiFetch<StockOpname>(\`/v1/\${outletSlug}/opname\`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -139,18 +140,18 @@ export async function createStockOpname(outletSlug: string, payload: { product_i
 
 export async function getStockOpnames(outletSlug: string): Promise<{ items: StockOpname[]; total: number }> {
   if (outletSlug === 'ALL') return { items: [], total: 0 };
-  return apiFetch<{ items: StockOpname[]; total: number }>(`/v1/${outletSlug}/opname`);
+  return apiFetch<{ items: StockOpname[]; total: number }>(\`/v1/\${outletSlug}/opname\`);
 }
 
 // ----------------- Accounting & Double Entry API -----------------
 export async function getAccounts(outletSlug: string): Promise<Account[]> {
   if (outletSlug === 'ALL') return [];
-  return apiFetch<Account[]>(`/v1/${outletSlug}/accounting/ledger`); // Dummy for now, actual backend has ledger, etc.
+  return apiFetch<Account[]>(\`/v1/\${outletSlug}/accounting/ledger\`); // Dummy for now, actual backend has ledger, etc.
 }
 
 export async function getJournals(outletSlug: string): Promise<{ items: JournalEntry[]; total: number }> {
   if (outletSlug === 'ALL') return { items: [], total: 0 };
-  return apiFetch<{ items: JournalEntry[]; total: number }>(`/v1/${outletSlug}/accounting/ledger`);
+  return apiFetch<{ items: JournalEntry[]; total: number }>(\`/v1/\${outletSlug}/accounting/ledger\`);
 }
 
 export function removeAuthToken() {
@@ -159,3 +160,5 @@ export function removeAuthToken() {
     localStorage.removeItem('pos_admin_token');
   }
 }
+`;
+fs.writeFileSync('src/lib/api.ts', code);

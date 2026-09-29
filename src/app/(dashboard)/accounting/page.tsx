@@ -26,7 +26,7 @@ export default function AccountingPage() {
     setLoading(true);
     try {
       const [accs, jnls] = await Promise.all([
-        getAccounts().catch(() => []),
+        getAccounts(outletFilter).catch(() => []),
         getJournals(outletFilter).catch(() => ({ items: [], total: 0 })),
       ]);
       setAccounts(accs || []);

@@ -1,4 +1,4 @@
-export type OutletFilter = 'ALL' | 'RESTORAN' | 'CAFE';
+export type OutletFilter = string;
 
 export interface Product {
   id: string;
