@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { OutletFilter } from '@/types';
-import { getAuthToken, getOutletsList } from '@/lib/api';
+import { getAuthToken, getOutletsList, getUserProfile } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 interface OutletContextType {
@@ -17,6 +17,7 @@ interface OutletContextType {
   isAuthenticated: boolean;
   setIsAuthenticated: (val: boolean) => void;
   outlets: any[];
+  userProfile: any | null;
 }
 
 const OutletContext = createContext<OutletContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ export function OutletProvider({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [outlets, setOutlets] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<any | null>(null);
 
   useEffect(() => {
     if (getAuthToken()) {
@@ -38,6 +40,11 @@ export function OutletProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isAuthenticated) {
+      getUserProfile().then(res => {
+        // Backend returns { user: {...} } so it might be unwrapped by apiFetch
+        setUserProfile(res?.user || res);
+      }).catch(() => {});
+
       getOutletsList().then((data) => {
         setOutlets(data || []);
         if (data && data.length > 0 && outletFilter === 'ALL') {
@@ -63,6 +70,7 @@ export function OutletProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         setIsAuthenticated,
         outlets,
+        userProfile,
       }}
     >
       {children}

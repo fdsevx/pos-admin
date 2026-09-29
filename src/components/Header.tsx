@@ -23,6 +23,7 @@ export default function Header() {
     setSelectedYear,
     setIsMobileMenuOpen,
     outlets,
+    userProfile,
   } = useOutlet();
 
   const monthNames = [
@@ -48,7 +49,7 @@ export default function Header() {
             <Sparkles className="w-3.5 h-3.5 text-teal-600" />
           </div>
           <span className="font-bold text-slate-800 text-sm sm:text-base">
-            Halo, Super Admin!
+            Halo, {userProfile?.display_name || 'Super Admin'}!
           </span>
           <ChevronDown className="w-4 h-4 text-slate-400 cursor-pointer" />
         </div>

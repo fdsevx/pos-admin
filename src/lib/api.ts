@@ -159,3 +159,7 @@ export function removeAuthToken() {
     localStorage.removeItem('pos_admin_token');
   }
 }
+
+export async function getUserProfile() {
+  return apiFetch<any>('/v1/auth/me');
+}
