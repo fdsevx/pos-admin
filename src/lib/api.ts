@@ -1,6 +1,6 @@
 import { ApiResponse, ChartDataPoint, MonthlyReport, Product, StockOpname, Expense, Account, JournalEntry } from '@/types';
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pos-backend.fdsevx.workers.dev';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pos-backend.fdsevx.workers.dev/api';
 
 // Helper for formatted currency
 export function formatRupiah(value: number | string | undefined): string {
@@ -57,7 +57,7 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
 
 // ----------------- Auth API -----------------
 export async function loginAdmin(username: string = 'admin', password: string = 'admin123') {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+  const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
@@ -76,7 +76,7 @@ export async function getMonthlyReport(outletType?: string, month: number = 9, y
   if (outletType && outletType !== 'ALL') {
     headers['X-Outlet-Type'] = outletType;
   }
-  return apiFetch<MonthlyReport>(`/api/v1/reports/monthly?${params.toString()}`, { headers });
+  return apiFetch<MonthlyReport>(`/v1/reports/monthly?${params.toString()}`, { headers });
 }
 
 export async function getChartData(outletType?: string, period: 'daily' | 'monthly' = 'daily', month: number = 9, year: number = 2026): Promise<ChartDataPoint[]> {
@@ -85,11 +85,11 @@ export async function getChartData(outletType?: string, period: 'daily' | 'month
   if (outletType && outletType !== 'ALL') {
     headers['X-Outlet-Type'] = outletType;
   }
-  return apiFetch<ChartDataPoint[]>(`/api/v1/reports/chart?${params.toString()}`, { headers });
+  return apiFetch<ChartDataPoint[]>(`/v1/reports/chart?${params.toString()}`, { headers });
 }
 
 export function getExportUrl(format: 'pdf' | 'excel', month: number = 9, year: number = 2026, outletType: string = 'ALL'): string {
-  return `${API_BASE_URL}/api/v1/reports/export?format=${format}&month=${month}&year=${year}&outlet_type=${outletType}`;
+  return `${API_BASE_URL}/v1/reports/export?format=${format}&month=${month}&year=${year}&outlet_type=${outletType}`;
 }
 
 // ----------------- Products / Inventory API -----------------
@@ -99,32 +99,32 @@ export async function getProducts(outletType?: string, category?: string): Promi
   if (category) params.append('category', category);
 
   const query = params.toString() ? `?${params.toString()}` : '';
-  return apiFetch<Product[]>(`/api/v1/products${query}`);
+  return apiFetch<Product[]>(`/v1/products${query}`);
 }
 
 export async function createProduct(payload: Partial<Product>): Promise<Product> {
-  return apiFetch<Product>('/api/v1/products', {
+  return apiFetch<Product>('/v1/products', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 }
 
 export async function updateProduct(id: string, payload: Partial<Product>): Promise<Product> {
-  return apiFetch<Product>(`/api/v1/products/${id}`, {
+  return apiFetch<Product>(`/v1/products/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),
   });
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  return apiFetch<void>(`/api/v1/products/${id}`, {
+  return apiFetch<void>(`/v1/products/${id}`, {
     method: 'DELETE',
   });
 }
 
 // ----------------- Stock Opname API -----------------
 export async function createStockOpname(payload: { product_id: string; actual_stock: number; notes: string }): Promise<StockOpname> {
-  return apiFetch<StockOpname>('/api/v1/opname', {
+  return apiFetch<StockOpname>('/v1/opname', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -134,19 +134,19 @@ export async function getStockOpnames(outletType?: string): Promise<{ items: Sto
   const params = new URLSearchParams();
   if (outletType && outletType !== 'ALL') params.append('outlet_type', outletType);
   const query = params.toString() ? `?${params.toString()}` : '';
-  return apiFetch<{ items: StockOpname[]; total: number }>(`/api/v1/opname${query}`);
+  return apiFetch<{ items: StockOpname[]; total: number }>(`/v1/opname${query}`);
 }
 
 // ----------------- Accounting & Double Entry API -----------------
 export async function getAccounts(): Promise<Account[]> {
-  return apiFetch<Account[]>('/api/v1/accounts');
+  return apiFetch<Account[]>('/v1/accounts');
 }
 
 export async function getJournals(outletType?: string): Promise<{ items: JournalEntry[]; total: number }> {
   const params = new URLSearchParams();
   if (outletType && outletType !== 'ALL') params.append('outlet_type', outletType);
   const query = params.toString() ? `?${params.toString()}` : '';
-  return apiFetch<{ items: JournalEntry[]; total: number }>(`/api/v1/journals${query}`);
+  return apiFetch<{ items: JournalEntry[]; total: number }>(`/v1/journals${query}`);
 }
 
 export function removeAuthToken() {

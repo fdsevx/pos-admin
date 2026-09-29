@@ -198,7 +198,7 @@ export default function AccountingPage() {
                 </div>
                 <p className="max-w-md mx-auto text-slate-400 text-xs">
                   Setiap kali kasir di aplikasi Flutter mengirimkan transaksi batch melalui endpoint{' '}
-                  <code className="text-teal-600 bg-slate-100 px-1 py-0.5 rounded">/api/v1/sync</code>,
+                  <code className="text-teal-600 bg-slate-100 px-1 py-0.5 rounded">/v1/sync</code>,
                   backend Golang akan otomatis membuat jurnal double-entry (Debit Kas/QRIS, Kredit
                   Pendapatan, Debit HPP, Kredit Persediaan) secara otomatis.
                 </p>

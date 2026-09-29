@@ -36,7 +36,7 @@ export default function UsersPage() {
     setLoading(true);
     try {
       const token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/api/v1/users`, {
+      const res = await fetch(`${API_BASE_URL}/v1/users`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export default function UsersPage() {
     e.preventDefault();
     try {
       const token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/api/v1/users`, {
+      const res = await fetch(`${API_BASE_URL}/v1/users`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -89,7 +89,7 @@ export default function UsersPage() {
     if (confirm(`Nonaktifkan akun kasir "${name}"?`)) {
       try {
         const token = getAuthToken();
-        await fetch(`${API_BASE_URL}/api/v1/users/${id}`, {
+        await fetch(`${API_BASE_URL}/v1/users/${id}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },
         });
