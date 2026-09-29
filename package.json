@@ -27,5 +27,9 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.143.0"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.32.0",
+    "lightningcss-linux-x64-musl": "^1.32.0"
   }
 }
