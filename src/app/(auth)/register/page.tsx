@@ -3,24 +3,55 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Lock, Mail, ArrowRight, Store } from 'lucide-react';
+import { User, Lock, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { API_BASE_URL } from '@/lib/api';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [storeName, setStoreName] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate registration API call
-    setTimeout(() => {
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          username, 
+          password,
+          display_name: displayName
+        }),
+      });
+      
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setErrorMsg(data.message || data.error || 'Pendaftaran gagal. Silakan coba lagi.');
+        setLoading(false);
+        return;
+      }
+
+      setSuccessMsg('Pendaftaran berhasil! Menunggu verifikasi superadmin.');
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+      
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Terjadi kesalahan pada server.');
       setLoading(false);
-      router.push('/login');
-    }, 1500);
+    }
   };
 
   return (
@@ -37,13 +68,27 @@ export default function RegisterPage() {
             Buat Akun Baru
           </h1>
           <p className="text-center text-slate-500 text-sm mb-8">
-            Daftar untuk mulai mengelola bisnis Anda
+            Daftar sebagai Admin (Menunggu Verifikasi)
           </p>
+
+          {errorMsg && (
+            <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-start gap-3 text-sm">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="mb-6 p-4 bg-teal-50 border border-teal-200 text-teal-700 rounded-xl flex items-start gap-3 text-sm">
+              <CheckCircle2 className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
+              <span>{successMsg}</span>
+            </div>
+          )}
 
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Nama Lengkap
+                Nama Tampilan (Display Name)
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -52,8 +97,8 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
                   className="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all outline-none"
                   placeholder="Budi Santoso"
                 />
@@ -62,38 +107,19 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Alamat Email
+                Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all outline-none"
-                  placeholder="admin@posbwx.com"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Nama Toko/Bisnis
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Store className="h-5 w-5 text-slate-400" />
+                  <User className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
                   type="text"
                   required
-                  value={storeName}
-                  onChange={(e) => setStoreName(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all outline-none"
-                  placeholder="Cafe Sejahtera"
+                  placeholder="budi_admin"
                 />
               </div>
             </div>
@@ -119,7 +145,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !!successMsg}
               className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white py-3.5 px-4 rounded-xl font-semibold text-sm transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed mt-6"
             >
               {loading ? (
