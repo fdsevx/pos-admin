@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Package,
@@ -16,11 +16,14 @@ import {
   Building,
   Target,
   FileSpreadsheet,
+  LogOut,
 } from 'lucide-react';
 import { useOutlet } from '@/context/OutletContext';
+import { removeAuthToken } from '@/lib/api';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isMobileMenuOpen, setIsMobileMenuOpen } = useOutlet();
 
   const menuItems = [
@@ -37,6 +40,11 @@ export default function Sidebar() {
 
   const handleLinkClick = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    removeAuthToken();
+    router.push('/login');
   };
 
   return (
@@ -123,15 +131,22 @@ export default function Sidebar() {
 
         {/* Footer Info */}
         <div className="p-4 border-t border-slate-100">
-          <div className="p-3 bg-slate-50 rounded-xl flex items-center gap-3">
+          <div className="p-3 bg-slate-50 rounded-xl flex items-center gap-3 mb-3">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <div className="text-xs">
               <div className="font-semibold text-slate-700">API Terhubung</div>
               <div className="text-slate-400 text-[10px] truncate max-w-[150px]">
-                posbackend.b4a.run
+                pos-backend.fdsevx.workers.dev
               </div>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition-colors text-sm font-semibold shadow-sm"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Keluar (Logout)</span>
+          </button>
         </div>
       </aside>
     </>

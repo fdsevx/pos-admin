@@ -148,3 +148,10 @@ export async function getJournals(outletType?: string): Promise<{ items: Journal
   const query = params.toString() ? `?${params.toString()}` : '';
   return apiFetch<{ items: JournalEntry[]; total: number }>(`/api/v1/journals${query}`);
 }
+
+export function removeAuthToken() {
+  authToken = '';
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('pos_admin_token');
+  }
+}

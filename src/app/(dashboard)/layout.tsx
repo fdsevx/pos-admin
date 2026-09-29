@@ -1,3 +1,4 @@
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { OutletProvider } from '@/context/OutletContext';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -8,6 +9,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <ProtectedRoute>
     <OutletProvider>
       <div className="min-h-screen flex flex-col">
         {/* Sidebar */}
@@ -22,5 +24,6 @@ export default function DashboardLayout({
         </div>
       </div>
     </OutletProvider>
+    </ProtectedRoute>
   );
 }
