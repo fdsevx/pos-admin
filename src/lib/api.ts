@@ -1,6 +1,6 @@
 import { ApiResponse, ChartDataPoint, MonthlyReport, Product, StockOpname, Expense, Account, JournalEntry } from '@/types';
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://posbackend-jbe49fya.b4a.run';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pos-backend.fdsevx.workers.dev';
 
 // Helper for formatted currency
 export function formatRupiah(value: number | string | undefined): string {

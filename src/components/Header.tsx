@@ -42,7 +42,7 @@ export default function Header() {
         </button>
 
         <div className="flex items-center gap-2">
-          {/* Green diamond icon from Kolabo header */}
+          {/* Green diamond icon from POS BWX header */}
           <div className="w-5 h-5 rounded-md bg-teal-500/10 flex items-center justify-center">
             <Sparkles className="w-3.5 h-3.5 text-teal-600" />
           </div>
@@ -104,12 +104,12 @@ export default function Header() {
           </select>
         </div>
 
-        {/* Switch to HRM Pill (Kolabo Style) */}
+        {/* Switch to HRM Pill (POS BWX Style) */}
         <button className="hidden xl:inline-flex items-center gap-2 px-3.5 py-1.5 border border-slate-200 text-xs font-medium text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
-          Switch to Kolabo HRM
+          Switch to POS BWX HRM
         </button>
 
-        {/* Language selector (Kolabo Style) */}
+        {/* Language selector (POS BWX Style) */}
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 text-xs font-medium text-slate-600 rounded-xl cursor-pointer hover:bg-slate-50">
           <Globe className="w-3.5 h-3.5 text-slate-400" />
           <span>Bahasa Indonesia</span>

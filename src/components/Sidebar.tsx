@@ -58,13 +58,13 @@ export default function Sidebar() {
         {/* Logo Section */}
         <div className="h-20 flex items-center justify-between px-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            {/* Kolabo Teal Logo Mark */}
+            {/* POS BWX Teal Logo Mark */}
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-teal-400 flex items-center justify-center text-white font-bold text-xl shadow-sm">
-              K
+              P
             </div>
             <div>
               <div className="font-extrabold text-slate-800 text-lg tracking-tight">
-                Kolabo
+                POS BWX
               </div>
               <div className="text-[10px] text-slate-400 -mt-1 font-medium">
                 By Langit POS
