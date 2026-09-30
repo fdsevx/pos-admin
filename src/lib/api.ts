@@ -36,6 +36,7 @@ export function setAuthToken(token: string) {
   authToken = token;
   if (typeof window !== 'undefined') {
     localStorage.setItem('pos_admin_token', token);
+    document.cookie = `pos_admin_token=${token}; path=/; max-age=86400; SameSite=Lax`;
   }
 }
 
@@ -62,6 +63,22 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+
+    // Auto-logout & redirect if token is invalid or unauthorized
+    const isUnauthorized =
+      response.status === 401 ||
+      errorData?.error?.code === 'UNAUTHORIZED' ||
+      errorData?.code === 'UNAUTHORIZED' ||
+      (typeof errorData?.message === 'string' && errorData.message.toLowerCase().includes('invalid token')) ||
+      (typeof errorData?.error?.message === 'string' && errorData.error.message.toLowerCase().includes('invalid token'));
+
+    if (isUnauthorized) {
+      removeAuthToken();
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
+    }
+
     throw new Error(errorData.message || errorData.error?.message || errorData.error || `HTTP error ${response.status}`);
   }
 
@@ -371,6 +388,7 @@ export function removeAuthToken() {
   authToken = '';
   if (typeof window !== 'undefined') {
     localStorage.removeItem('pos_admin_token');
+    document.cookie = 'pos_admin_token=; path=/; max-age=0; SameSite=Lax';
   }
 }
 

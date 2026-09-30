@@ -1,19 +1,25 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Menu,
   Plus,
   ChevronDown,
-  Globe,
   Store,
   Calendar,
   Sparkles,
+  LogOut,
+  User as UserIcon,
 } from 'lucide-react';
 import { useOutlet } from '@/context/OutletContext';
 import { OutletFilter } from '@/types';
+import { removeAuthToken } from '@/lib/api';
 
 export default function Header() {
+  const router = useRouter();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const {
     outletFilter,
     setOutletFilter,
@@ -31,6 +37,21 @@ export default function Header() {
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
   ];
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    removeAuthToken();
+    router.push('/login');
+  };
+
   return (
     <header className="sticky top-0 z-30 h-20 bg-white/90 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-4 sm:px-8">
       {/* Left Area: Mobile hamburger & Greeting */}
@@ -43,15 +64,36 @@ export default function Header() {
           <Menu className="w-6 h-6" />
         </button>
 
-        <div className="flex items-center gap-2">
-          {/* Green diamond icon from POS BWX header */}
-          <div className="w-5 h-5 rounded-md bg-teal-500/10 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-          </div>
-          <span className="font-bold text-slate-800 text-sm sm:text-base">
-            Halo, {userProfile?.display_name || 'Super Admin'}!
-          </span>
-          <ChevronDown className="w-4 h-4 text-slate-400 cursor-pointer" />
+        {/* User Greeting with Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="flex items-center gap-2 p-1.5 -ml-1.5 rounded-xl hover:bg-slate-50 transition-colors"
+          >
+            <div className="w-6 h-6 rounded-md bg-teal-500/10 flex items-center justify-center">
+              <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+            </div>
+            <span className="font-bold text-slate-800 text-sm sm:text-base">
+              Halo, {userProfile?.display_name || userProfile?.username || 'Super Admin'}!
+            </span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isUserMenuOpen && (
+            <div className="absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="px-4 py-2 border-b border-slate-100">
+                <p className="text-xs font-semibold text-slate-900">{userProfile?.display_name || 'Administrator'}</p>
+                <p className="text-[11px] text-slate-400 font-mono capitalize">Role: {userProfile?.role || 'super_admin'}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors mt-1"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                <span>Keluar (Logout)</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Quick Add Pill */}
