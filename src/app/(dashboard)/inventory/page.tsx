@@ -32,7 +32,7 @@ import {
 import { Product, Category } from '@/types';
 
 export default function InventoryPage() {
-  const { outletFilter } = useOutlet();
+  const { outletFilter, outlets } = useOutlet();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -58,16 +58,17 @@ export default function InventoryPage() {
     name: '',
     sku: '',
     category: 'Makanan',
+    category_id: '',
     price: '',
     cogs: '',
     stock_quantity: 0,
     min_stock: 5,
     unit: 'Pcs',
+    outlet_id: '',
     outlet_type: 'RESTORAN' as 'RESTORAN' | 'CAFE',
   });
 
   const loadCategories = async () => {
-    if (outletFilter === 'ALL') return;
     try {
       const data = await getCategories(outletFilter);
       setCategories(data || []);
@@ -98,10 +99,14 @@ export default function InventoryPage() {
 
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCatName.trim() || outletFilter === 'ALL') return;
+    if (!newCatName.trim()) return;
     setCatLoading(true);
     try {
-      await createCategory(outletFilter, { name: newCatName.trim() });
+      const targetSlug = outletFilter === 'ALL' ? (outlets[0]?.slug || 'ALL') : outletFilter;
+      await createCategory(targetSlug, { 
+        name: newCatName.trim(),
+        outlet_id: outlets[0]?.id
+      });
       setNewCatName('');
       loadCategories();
     } catch (err) {
@@ -176,17 +181,28 @@ export default function InventoryPage() {
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createProduct(outletFilter, productForm);
+      const selectedOutlet = outlets.find((o) => o.id === productForm.outlet_id || o.slug === outletFilter);
+      const targetSlug = outletFilter === 'ALL' ? (selectedOutlet?.slug || outlets[0]?.slug || 'ALL') : outletFilter;
+      const resolvedOutletId = productForm.outlet_id || selectedOutlet?.id || outlets[0]?.id;
+
+      await createProduct(targetSlug, {
+        ...productForm,
+        outlet_id: resolvedOutletId,
+        category_id: productForm.category_id || undefined,
+      });
+
       setIsProductModalOpen(false);
       setProductForm({
         name: '',
         sku: '',
         category: 'Makanan',
+        category_id: '',
         price: '',
         cogs: '',
         stock_quantity: 0,
         min_stock: 5,
         unit: 'Pcs',
+        outlet_id: outlets[0]?.id || '',
         outlet_type: 'RESTORAN',
       });
       loadData();
@@ -424,12 +440,12 @@ export default function InventoryPage() {
                       <td className="py-3.5 px-4">
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            p.outlet_type === 'RESTORAN'
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-teal-100 text-teal-800'
+                            (p.outlet_name || p.outlet_type || '').toLowerCase().includes('cafe')
+                              ? 'bg-teal-100 text-teal-800'
+                              : 'bg-amber-100 text-amber-800'
                           }`}
                         >
-                          {p.outlet_type}
+                          {p.outlet_name || p.outlet_type || 'Restoran'}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 font-bold text-slate-800">
@@ -649,32 +665,70 @@ export default function InventoryPage() {
                     Outlet *
                   </label>
                   <select
-                    value={productForm.outlet_type}
-                    onChange={(e) =>
+                    value={
+                      productForm.outlet_id ||
+                      (outlets.find((o) => o.slug === outletFilter)?.id || outlets[0]?.id || '')
+                    }
+                    onChange={(e) => {
+                      const selId = e.target.value;
+                      const selOutlet = outlets.find((o) => o.id === selId);
                       setProductForm({
                         ...productForm,
-                        outlet_type: e.target.value as 'RESTORAN' | 'CAFE',
-                      })
-                    }
+                        outlet_id: selId,
+                        outlet_type: (selOutlet?.slug === 'cafe' ? 'CAFE' : 'RESTORAN') as 'RESTORAN' | 'CAFE',
+                      });
+                    }}
                     className="w-full p-2.5 border border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none font-medium"
                   >
-                    <option value="RESTORAN">Restoran</option>
-                    <option value="CAFE">Cafe</option>
+                    {outlets.length > 0 ? (
+                      outlets.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.name || o.slug}
+                        </option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="RESTORAN">Restoran</option>
+                        <option value="CAFE">Cafe</option>
+                      </>
+                    )}
                   </select>
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
                     Kategori
                   </label>
-                  <input
-                    type="text"
-                    value={productForm.category}
-                    onChange={(e) =>
-                      setProductForm({ ...productForm, category: e.target.value })
-                    }
-                    placeholder="Minuman / Makanan"
-                    className="w-full p-2.5 border border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none"
-                  />
+                  {categories.length > 0 ? (
+                    <select
+                      value={productForm.category_id || ''}
+                      onChange={(e) => {
+                        const selCat = categories.find((c) => c.id === e.target.value);
+                        setProductForm({
+                          ...productForm,
+                          category_id: e.target.value,
+                          category: selCat ? selCat.name : productForm.category,
+                        });
+                      }}
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none font-medium"
+                    >
+                      <option value="">Pilih Kategori</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={productForm.category}
+                      onChange={(e) =>
+                        setProductForm({ ...productForm, category: e.target.value })
+                      }
+                      placeholder="Minuman / Makanan"
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">

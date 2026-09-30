@@ -132,25 +132,64 @@ export function getExportUrl(format: 'pdf' | 'excel', month: number = 9, year: n
 
 // ----------------- Products / Inventory API -----------------
 export async function getProducts(outletSlug: string, category?: string): Promise<Product[]> {
-  if (outletSlug === 'ALL') return []; // Need specific outlet for products based on current backend routes
   const params = new URLSearchParams();
   if (category) params.append('category', category);
 
   const query = params.toString() ? `?${params.toString()}` : '';
-  return apiFetch<Product[]>(`/v1/${outletSlug}/products${query}`);
+  const data = await apiFetch<any[]>(`/v1/${outletSlug}/products${query}`);
+  if (!Array.isArray(data)) return [];
+
+  return data.map((item) => ({
+    ...item,
+    stock_quantity: item.stock_quantity ?? item.stock ?? 0,
+    cogs: String(item.cogs ?? item.cost_price ?? '0'),
+    price: String(item.price ?? '0'),
+    min_stock: item.min_stock ?? 5,
+    unit: item.unit || 'pcs',
+    is_active: item.is_active ?? item.is_available ?? true,
+    outlet_type: item.outlet_name || item.outlet_type || 'Restoran',
+    outlet_name: item.outlet_name || (item.outlet_type === 'CAFE' ? 'Cafe' : 'Restoran'),
+    category: item.category_name || item.category || (item.categories?.name || 'Makanan'),
+  }));
 }
 
-export async function createProduct(outletSlug: string, payload: Partial<Product>): Promise<Product> {
+export async function createProduct(outletSlug: string, payload: Partial<Product> & any): Promise<Product> {
+  const body = {
+    name: payload.name,
+    sku: payload.sku || `PRD-${Date.now().toString(36).toUpperCase()}`,
+    unit: payload.unit || 'pcs',
+    price: String(payload.price ?? '0'),
+    cost_price: String(payload.cost_price ?? payload.cogs ?? '0'),
+    stock: Number(payload.stock ?? payload.stock_quantity ?? 0),
+    track_stock: payload.track_stock ?? true,
+    is_available: payload.is_available ?? payload.is_active ?? true,
+    category_id: payload.category_id || null,
+    outlet_id: payload.outlet_id || null,
+    description: payload.description || null,
+  };
+
   return apiFetch<Product>(`/v1/${outletSlug}/products`, {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 }
 
-export async function updateProduct(outletSlug: string, id: string, payload: Partial<Product>): Promise<Product> {
+export async function updateProduct(outletSlug: string, id: string, payload: Partial<Product> & any): Promise<Product> {
+  const body: any = { ...payload };
+  if (payload.price !== undefined) body.price = String(payload.price);
+  if (payload.cogs !== undefined || payload.cost_price !== undefined) {
+    body.cost_price = String(payload.cost_price ?? payload.cogs);
+  }
+  if (payload.stock_quantity !== undefined || payload.stock !== undefined) {
+    body.stock = Number(payload.stock ?? payload.stock_quantity);
+  }
+  if (payload.is_active !== undefined) {
+    body.is_available = payload.is_active;
+  }
+
   return apiFetch<Product>(`/v1/${outletSlug}/products/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 }
 
@@ -169,7 +208,6 @@ export async function createStockOpname(outletSlug: string, payload: { product_i
 }
 
 export async function getStockOpnames(outletSlug: string): Promise<{ items: StockOpname[]; total: number }> {
-  if (outletSlug === 'ALL') return { items: [], total: 0 };
   return apiFetch<{ items: StockOpname[]; total: number }>(`/v1/${outletSlug}/opname`);
 }
 
@@ -187,11 +225,10 @@ export async function updateOutletSettings(outletSlug: string, payload: Partial<
 
 // ----------------- Categories API -----------------
 export async function getCategories(outletSlug: string): Promise<Category[]> {
-  if (outletSlug === 'ALL') return [];
   return apiFetch<Category[]>(`/v1/${outletSlug}/categories`);
 }
 
-export async function createCategory(outletSlug: string, payload: { name: string; sort_order?: number }): Promise<Category> {
+export async function createCategory(outletSlug: string, payload: { name: string; sort_order?: number; outlet_id?: string }): Promise<Category> {
   return apiFetch<Category>(`/v1/${outletSlug}/categories`, {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -394,4 +431,27 @@ export function removeAuthToken() {
 
 export async function getUserProfile() {
   return apiFetch<any>('/v1/auth/me');
+}
+
+// ----------------- Dashboard & Laporan API -----------------
+export async function getDashboardSummary(outletSlug: string, startDate?: string, endDate?: string): Promise<any> {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  
+  if (outletSlug === 'ALL') {
+    return apiFetch<any>(`/v1/reports/summary?${params.toString()}`);
+  }
+  return apiFetch<any>(`/v1/${outletSlug}/reports/summary?${params.toString()}`);
+}
+
+export async function getDashboardChart(outletSlug: string, startDate?: string, endDate?: string): Promise<any> {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  
+  if (outletSlug === 'ALL') {
+    return apiFetch<any>(`/v1/reports/chart?${params.toString()}`);
+  }
+  return apiFetch<any>(`/v1/${outletSlug}/reports/chart?${params.toString()}`);
 }

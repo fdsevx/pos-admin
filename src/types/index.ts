@@ -5,13 +5,20 @@ export interface Product {
   name: string;
   sku: string;
   category: string;
+  category_id?: string | null;
+  category_name?: string | null;
   price: string;
+  cost_price?: string;
   cogs: string;
+  stock?: number;
   stock_quantity: number;
   min_stock: number;
   unit: string;
-  outlet_type: 'RESTORAN' | 'CAFE';
+  outlet_id?: string;
+  outlet_name?: string;
+  outlet_type?: 'RESTORAN' | 'CAFE' | string;
   is_active: boolean;
+  is_available?: boolean;
   created_at?: string;
   updated_at?: string;
 }
