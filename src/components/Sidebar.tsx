@@ -15,6 +15,7 @@ import {
   LogOut,
   ShoppingCart,
   ShieldCheck,
+  Store,
 } from 'lucide-react';
 import { useOutlet } from '@/context/OutletContext';
 import { removeAuthToken } from '@/lib/api';
@@ -32,7 +33,8 @@ export default function Sidebar() {
     { label: 'Pembelian & Biaya', href: '/expenses', icon: FileSpreadsheet },
     { label: 'Double Entry', href: '/accounting', icon: Scale },
     { label: 'Kasir & Staf', href: '/users', icon: ShieldCheck },
-    { label: 'Pengaturan Unit Usaha', href: '/settings', icon: Settings },
+    { label: 'Unit Usaha', href: '/outlets', icon: Store },
+    { label: 'Pengaturan Struk', href: '/settings', icon: Settings },
   ];
 
   const handleLinkClick = () => {

@@ -107,10 +107,13 @@ export async function getOutletsList() {
   return apiFetch<any[]>('/v1/outlets');
 }
 
-export async function createOutlet(payload: { name: string; slug?: string }) {
+export async function createOutlet(payload: { name: string; slug?: string; is_active?: boolean }) {
   return apiFetch<any>('/v1/outlets', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      is_active: payload.is_active ?? true,
+    }),
   });
 }
 
