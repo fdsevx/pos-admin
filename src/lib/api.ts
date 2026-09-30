@@ -107,6 +107,19 @@ export async function getOutletsList() {
   return apiFetch<any[]>('/v1/outlets');
 }
 
+export async function createOutlet(payload: { name: string; slug?: string }) {
+  return apiFetch<any>('/v1/outlets', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteOutlet(outletId: string) {
+  return apiFetch<any>(`/v1/outlets/${outletId}`, {
+    method: 'DELETE',
+  });
+}
+
 // ----------------- Reports & Dashboard API -----------------
 export async function getMonthlyReport(outletSlug: string, month: number = 9, year: number = 2026): Promise<MonthlyReport> {
   const monthStr = `${year}-${String(month).padStart(2, '0')}`;

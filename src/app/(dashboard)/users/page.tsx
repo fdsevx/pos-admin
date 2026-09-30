@@ -216,6 +216,7 @@ export default function UsersPage() {
                 <th className="py-4 px-6">Nama Pegawai</th>
                 <th className="py-4 px-6">Username</th>
                 <th className="py-4 px-6">Role / Hak Akses</th>
+                <th className="py-4 px-6">Akses Unit Usaha</th>
                 <th className="py-4 px-6">Status Akun</th>
                 <th className="py-4 px-6 text-right">Aksi</th>
               </tr>
@@ -223,14 +224,14 @@ export default function UsersPage() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-teal-600" />
                     <span>Memuat data pegawai...</span>
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
                     Tidak ada pegawai ditemukan.
                   </td>
                 </tr>
@@ -258,6 +259,29 @@ export default function UsersPage() {
                       >
                         {u.role}
                       </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      {u.role === 'super_admin' ? (
+                        <span className="text-[11px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
+                          Semua Unit Usaha
+                        </span>
+                      ) : u.outlet_ids && u.outlet_ids.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {u.outlet_ids.map((oid: string) => {
+                            const o = outlets?.find((ot) => ot.id === oid);
+                            return (
+                              <span
+                                key={oid}
+                                className="text-[10px] font-semibold bg-teal-50 text-teal-700 px-2 py-0.5 rounded border border-teal-100"
+                              >
+                                {o?.name || oid.slice(0, 8)}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 italic">Belum ditentukan</span>
+                      )}
                     </td>
                     <td className="py-4 px-6">
                       <span
@@ -364,7 +388,7 @@ export default function UsersPage() {
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none"
                 >
                   <option value="cashier">Kasir (Cashier)</option>
-                  <option value="manager">Manajer Outlet</option>
+                  <option value="manager">Manajer Unit Usaha</option>
                   <option value="accountant">Akuntan (Keuangan)</option>
                   <option value="admin">Administrator</option>
                   <option value="super_admin">Super Admin</option>
@@ -373,49 +397,61 @@ export default function UsersPage() {
 
               {outlets && outlets.length > 0 && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Akses Outlet (Cabang)
-                  </label>
-                  <select
-                    onChange={(e) => {
-                      const id = e.target.value;
-                      if (id && !userForm.outlet_ids.includes(id)) {
-                        setUserForm({ ...userForm, outlet_ids: [...userForm.outlet_ids, id] });
-                      }
-                    }}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none"
-                  >
-                    <option value="">-- Pilih Cabang yang Diizinkan --</option>
-                    {outlets.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.name}
-                      </option>
-                    ))}
-                  </select>
-                  {userForm.outlet_ids.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {userForm.outlet_ids.map((id) => (
-                        <span
-                          key={id}
-                          className="inline-flex items-center gap-1 text-[11px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-lg border border-teal-200"
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Akses Unit Usaha (Centang yang Diizinkan)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (userForm.outlet_ids.length === outlets.length) {
+                          setUserForm({ ...userForm, outlet_ids: [] });
+                        } else {
+                          setUserForm({ ...userForm, outlet_ids: outlets.map((o) => o.id) });
+                        }
+                      }}
+                      className="text-[11px] text-teal-600 hover:text-teal-700 font-semibold"
+                    >
+                      {userForm.outlet_ids.length === outlets.length ? 'Batal Pilih Semua' : 'Pilih Semua'}
+                    </button>
+                  </div>
+                  <div className="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto">
+                    {outlets.map((o) => {
+                      const isChecked = userForm.outlet_ids.includes(o.id);
+                      return (
+                        <label
+                          key={o.id}
+                          className="flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-100 shadow-xs cursor-pointer hover:bg-teal-50/50 transition-colors"
                         >
-                          {outlets.find((o) => o.id === id)?.name || id}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setUserForm({
-                                ...userForm,
-                                outlet_ids: userForm.outlet_ids.filter((oid) => oid !== id),
-                              })
-                            }
-                            className="text-teal-500 hover:text-teal-800"
-                          >
-                            &times;
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setUserForm({
+                                  ...userForm,
+                                  outlet_ids: [...userForm.outlet_ids, o.id],
+                                });
+                              } else {
+                                setUserForm({
+                                  ...userForm,
+                                  outlet_ids: userForm.outlet_ids.filter((id) => id !== o.id),
+                                });
+                              }
+                            }}
+                            className="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 border-slate-300"
+                          />
+                          <div className="flex-1">
+                            <span className="text-xs font-bold text-slate-800">{o.name}</span>
+                            <span className="text-[10px] text-slate-400 block font-mono">slug: {o.slug}</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Pegawai ini hanya dapat melihat dan bertransaksi di Unit Usaha yang dicentang.
+                  </p>
                 </div>
               )}
 

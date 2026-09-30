@@ -303,10 +303,10 @@ export default function TransactionsPage() {
         <div className="p-12 text-center bg-white border border-slate-200 rounded-3xl shadow-sm">
           <Store className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-base font-semibold text-slate-800 mb-1">
-            Pilih Cabang / Outlet Spesifik
+            Pilih Unit Usaha Spesifik
           </h3>
           <p className="text-slate-500 text-sm max-w-md mx-auto">
-            Transaksi kasir dan pembatalan (void) harus terikat pada outlet tertentu. Silakan pilih cabang di dropdown atas.
+            Transaksi kasir dan pembatalan (void) harus terikat pada unit usaha tertentu. Silakan pilih unit usaha di dropdown atas.
           </p>
         </div>
       ) : activeTab === 'pos' ? (

@@ -107,18 +107,20 @@ export default function Header() {
 
       {/* Right Area: Filters & Action buttons */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Global Outlet Selector Dropdown */}
+        {/* Global Unit Usaha Selector Dropdown */}
         <div className="flex items-center bg-slate-50 border border-slate-200/80 rounded-xl px-2.5 py-1.5 gap-2">
           <Store className="w-4 h-4 text-teal-600" />
-          <span className="text-xs text-slate-400 font-medium hidden md:inline">
-            Outlet:
+          <span className="text-xs text-slate-500 font-semibold hidden md:inline">
+            Pilih Unit Usaha:
           </span>
           <select
             value={outletFilter}
             onChange={(e) => setOutletFilter(e.target.value as OutletFilter)}
-            className="bg-transparent text-xs sm:text-sm font-semibold text-slate-700 outline-none cursor-pointer"
+            className="bg-transparent text-xs sm:text-sm font-bold text-slate-700 outline-none cursor-pointer"
+            title="Pilih Unit Usaha"
+            aria-label="Pilih Unit Usaha"
           >
-            <option value="ALL">Semua Outlet</option>
+            <option value="ALL">Semua Unit Usaha</option>
             {outlets?.map(outlet => (
               <option key={outlet.id} value={outlet.slug}>
                 {outlet.name}

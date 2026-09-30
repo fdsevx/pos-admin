@@ -205,10 +205,10 @@ export default function CustomersPage() {
         <div className="p-12 text-center bg-white border border-slate-200 rounded-3xl shadow-sm">
           <Store className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-base font-semibold text-slate-800 mb-1">
-            Pilih Cabang / Outlet Spesifik
+            Pilih Unit Usaha Spesifik
           </h3>
           <p className="text-slate-500 text-sm max-w-md mx-auto">
-            Pelanggan terdaftar pada outlet yang bersangkutan. Silakan pilih outlet spesifik di bagian atas untuk mengelola pelanggan.
+            Pelanggan terdaftar pada unit usaha yang bersangkutan. Silakan pilih unit usaha spesifik di dropdown atas untuk mengelola pelanggan.
           </p>
         </div>
       ) : (

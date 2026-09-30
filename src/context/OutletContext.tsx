@@ -18,6 +18,7 @@ interface OutletContextType {
   setIsAuthenticated: (val: boolean) => void;
   outlets: any[];
   userProfile: any | null;
+  refreshOutlets: () => Promise<void>;
 }
 
 const OutletContext = createContext<OutletContextType | undefined>(undefined);
@@ -32,6 +33,15 @@ export function OutletProvider({ children }: { children: React.ReactNode }) {
   const [outlets, setOutlets] = useState<any[]>([]);
   const [userProfile, setUserProfile] = useState<any | null>(null);
 
+  const refreshOutlets = async () => {
+    try {
+      const data = await getOutletsList();
+      setOutlets(data || []);
+    } catch (err) {
+      console.error("Failed to refresh outlets", err);
+    }
+  };
+
   useEffect(() => {
     if (getAuthToken()) {
       setIsAuthenticated(true);
@@ -45,14 +55,7 @@ export function OutletProvider({ children }: { children: React.ReactNode }) {
         setUserProfile(res?.user || res);
       }).catch(() => {});
 
-      getOutletsList().then((data) => {
-        setOutlets(data || []);
-        if (data && data.length > 0 && outletFilter === 'ALL') {
-          // You could set default outlet here if you want
-        }
-      }).catch(err => {
-        console.error("Failed to fetch outlets", err);
-      });
+      refreshOutlets();
     }
   }, [isAuthenticated]);
 
@@ -71,6 +74,7 @@ export function OutletProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated,
         outlets,
         userProfile,
+        refreshOutlets,
       }}
     >
       {children}

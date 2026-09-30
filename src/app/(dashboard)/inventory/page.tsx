@@ -405,7 +405,7 @@ export default function InventoryPage() {
               <tr className="bg-slate-50/75 text-slate-400 uppercase font-semibold border-b border-slate-100">
                 <th className="py-3.5 px-4">Nama Produk</th>
                 <th className="py-3.5 px-4">SKU</th>
-                <th className="py-3.5 px-4">Outlet</th>
+                <th className="py-3.5 px-4">Unit Usaha</th>
                 <th className="py-3.5 px-4">Harga Jual</th>
                 <th className="py-3.5 px-4">Harga Beli (HPP)</th>
                 <th className="py-3.5 px-4">Kategori</th>
@@ -662,7 +662,7 @@ export default function InventoryPage() {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Outlet *
+                    Unit Usaha *
                   </label>
                   <select
                     value={

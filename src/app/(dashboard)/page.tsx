@@ -22,7 +22,7 @@ import RevenueBarChart from '@/components/dashboard/RevenueBarChart';
 import CategoryDonutChart from '@/components/dashboard/CategoryDonutChart';
 
 export default function DashboardPage() {
-  const { outletFilter, selectedMonth, selectedYear } = useOutlet();
+  const { outletFilter, selectedMonth, selectedYear, outlets } = useOutlet();
 
   const [report, setReport] = useState<MonthlyReport | null>(null);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
@@ -69,13 +69,11 @@ export default function DashboardPage() {
             Dasbor
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Ringkasan performa dan akuntansi outlet{' '}
+            Ringkasan performa dan akuntansi unit usaha{' '}
             <span className="font-semibold text-teal-600">
               {outletFilter === 'ALL'
-                ? 'Semua Outlet'
-                : outletFilter === 'RESTORAN'
-                ? 'Restoran'
-                : 'Cafe'}
+                ? 'Semua Unit Usaha'
+                : outlets.find((o) => o.slug === outletFilter)?.name || outletFilter}
             </span>
           </p>
         </div>

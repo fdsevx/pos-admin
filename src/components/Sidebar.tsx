@@ -32,7 +32,7 @@ export default function Sidebar() {
     { label: 'Pembelian & Biaya', href: '/expenses', icon: FileSpreadsheet },
     { label: 'Double Entry', href: '/accounting', icon: Scale },
     { label: 'Kasir & Staf', href: '/users', icon: ShieldCheck },
-    { label: 'Pengaturan Outlet', href: '/settings', icon: Settings },
+    { label: 'Pengaturan Unit Usaha', href: '/settings', icon: Settings },
   ];
 
   const handleLinkClick = () => {
