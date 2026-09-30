@@ -45,10 +45,22 @@ export default function AccountingPage() {
   const [balanceSheet, setBalanceSheet] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Date filters
+  // Dynamically compute correct dates based on the selected month & year
+  const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
   const monthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-  const firstDay = `${monthStr}-01`;
-  const lastDay = `${monthStr}-31`;
+  const defaultFirstDay = `${monthStr}-01`;
+  const defaultLastDay = `${monthStr}-${String(daysInMonth).padStart(2, '0')}`;
+
+  const [startDate, setStartDate] = useState<string>(defaultFirstDay);
+  const [endDate, setEndDate] = useState<string>(defaultLastDay);
+
+  // Sync date inputs when selectedMonth or selectedYear changes
+  useEffect(() => {
+    const dInM = new Date(selectedYear, selectedMonth, 0).getDate();
+    const mStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+    setStartDate(`${mStr}-01`);
+    setEndDate(`${mStr}-${String(dInM).padStart(2, '0')}`);
+  }, [selectedYear, selectedMonth]);
 
   // COA Modal
   const [isCoaModalOpen, setIsCoaModalOpen] = useState<boolean>(false);
@@ -85,17 +97,17 @@ export default function AccountingPage() {
         const data = await getCOA(outletFilter);
         setCoa(data || []);
       } else if (activeTab === 'LEDGER') {
-        const data = await getGeneralLedger(outletFilter, firstDay, lastDay);
-        setLedger(data || []);
+        const data = await getGeneralLedger(outletFilter, startDate, endDate);
+        setLedger(data?.data || data || []);
       } else if (activeTab === 'TRIAL_BALANCE') {
-        const data = await getTrialBalance(outletFilter, firstDay, lastDay);
-        setTrialBalance(data || []);
+        const data = await getTrialBalance(outletFilter, startDate, endDate);
+        setTrialBalance(data?.data || data || []);
       } else if (activeTab === 'INCOME_STATEMENT') {
-        const data = await getIncomeStatement(outletFilter, firstDay, lastDay);
-        setIncomeStatement(data);
+        const data = await getIncomeStatement(outletFilter, startDate, endDate);
+        setIncomeStatement(data?.data || data);
       } else if (activeTab === 'BALANCE_SHEET') {
-        const data = await getBalanceSheet(outletFilter, lastDay);
-        setBalanceSheet(data);
+        const data = await getBalanceSheet(outletFilter, endDate);
+        setBalanceSheet(data?.data || data);
       }
     } catch (err: any) {
       console.error(err);
@@ -107,7 +119,7 @@ export default function AccountingPage() {
 
   useEffect(() => {
     loadData();
-  }, [outletFilter, activeTab, selectedMonth, selectedYear]);
+  }, [outletFilter, activeTab, startDate, endDate]);
 
   // Handle Create Account COA
   const handleCreateAccount = async (e: React.FormEvent) => {
@@ -221,6 +233,54 @@ export default function AccountingPage() {
           </button>
         ))}
       </div>
+
+      {/* Date Filter Bar for Financial Reports */}
+      {outletFilter !== 'ALL' && activeTab !== 'COA' && (
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+              <Calendar className="w-4 h-4 text-teal-600" />
+              <span>Filter Periode:</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-slate-500 font-medium">Dari:</label>
+              <input
+                type="date"
+                value={startDate}
+                max={endDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-slate-500 font-medium">Sampai:</label>
+              <input
+                type="date"
+                value={endDate}
+                min={startDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const dInM = new Date(selectedYear, selectedMonth, 0).getDate();
+                const mStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+                setStartDate(`${mStr}-01`);
+                setEndDate(`${mStr}-${String(dInM).padStart(2, '0')}`);
+              }}
+              className="text-xs text-teal-600 hover:text-teal-700 font-semibold px-3 py-1.5 bg-teal-50 hover:bg-teal-100 rounded-xl transition-colors"
+            >
+              Reset ke Bulan Ini
+            </button>
+          </div>
+        </div>
+      )}
 
       {outletFilter === 'ALL' ? (
         <div className="p-12 text-center bg-white border border-slate-200 rounded-3xl shadow-sm">
@@ -377,7 +437,7 @@ export default function AccountingPage() {
         <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 max-w-3xl">
           <div>
             <h3 className="text-xl font-bold text-slate-800">Laporan Laba Rugi</h3>
-            <p className="text-xs text-slate-400">Periode: {firstDay} s/d {lastDay}</p>
+            <p className="text-xs text-slate-400">Periode: {startDate} s/d {endDate}</p>
           </div>
 
           {loading ? (
@@ -444,7 +504,7 @@ export default function AccountingPage() {
         <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 max-w-3xl">
           <div>
             <h3 className="text-xl font-bold text-slate-800">Neraca Keuangan (Balance Sheet)</h3>
-            <p className="text-xs text-slate-400">Posisi Keuangan per tanggal {lastDay}</p>
+            <p className="text-xs text-slate-400">Posisi Keuangan per tanggal {endDate}</p>
           </div>
 
           {loading ? (
