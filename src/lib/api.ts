@@ -386,6 +386,19 @@ export async function createCOA(outletSlug: string, payload: Partial<Account>): 
   });
 }
 
+export async function updateCOA(outletSlug: string, id: string, payload: Partial<Account>): Promise<Account> {
+  return apiFetch<Account>(`/v1/${outletSlug}/accounting/coa/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCOA(outletSlug: string, id: string): Promise<void> {
+  return apiFetch<void>(`/v1/${outletSlug}/accounting/coa/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function createManualJournal(outletSlug: string, payload: any): Promise<any> {
   return apiFetch<any>(`/v1/${outletSlug}/accounting/journals/manual`, {
     method: 'POST',

@@ -17,11 +17,14 @@ import {
   BarChart3,
   PieChart,
   Calendar,
+  Trash2,
 } from 'lucide-react';
 import { useOutlet } from '@/context/OutletContext';
 import {
   getCOA,
   createCOA,
+  updateCOA,
+  deleteCOA,
   createManualJournal,
   getGeneralLedger,
   getTrialBalance,
@@ -65,12 +68,43 @@ export default function AccountingPage() {
   // COA Modal
   const [isCoaModalOpen, setIsCoaModalOpen] = useState<boolean>(false);
   const [coaForm, setCoaForm] = useState({
+    id: '',
+    isEdit: false,
     code: '',
     name: '',
     type: 'asset',
     normal_balance: 'DEBIT',
     initial_balance: '0',
   });
+
+  const openCoaModal = (acc?: Account) => {
+    if (acc) {
+      setCoaForm({
+        id: acc.id || '',
+        isEdit: true,
+        code: acc.code,
+        name: acc.name,
+        type: acc.type,
+        normal_balance: acc.normal_balance,
+        initial_balance: acc.initial_balance?.toString() || '0',
+      });
+    } else {
+      setCoaForm({ id: '', isEdit: false, code: '', name: '', type: 'asset', normal_balance: 'DEBIT', initial_balance: '0' });
+    }
+    setIsCoaModalOpen(true);
+  };
+
+  const handleDeleteCoa = async (id: string) => {
+    if (outletFilter === 'ALL' || !confirm('Apakah Anda yakin ingin menghapus akun ini?')) return;
+    setMsg(null);
+    try {
+      await deleteCOA(outletFilter, id);
+      setMsg({ type: 'success', text: 'Akun COA berhasil dihapus' });
+      loadData();
+    } catch (err: any) {
+      setMsg({ type: 'error', text: err.message || 'Gagal menghapus akun COA. Pastikan akun tidak terpakai di jurnal.' });
+    }
+  };
 
   // Manual Journal Modal
   const [isJournalModalOpen, setIsJournalModalOpen] = useState<boolean>(false);
@@ -122,25 +156,33 @@ export default function AccountingPage() {
     loadData();
   }, [outletFilter, activeTab, startDate, endDate]);
 
-  // Handle Create Account COA
+  // Handle Create / Edit Account COA
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (outletFilter === 'ALL') return;
     setSubmitting(true);
     try {
-      await createCOA(outletFilter, {
+      const payload = {
         code: coaForm.code,
         name: coaForm.name,
         type: coaForm.type,
         normal_balance: coaForm.normal_balance,
         initial_balance: parseFloat(coaForm.initial_balance) || 0,
-      });
-      setMsg({ type: 'success', text: 'Akun COA berhasil ditambahkan!' });
+      };
+
+      if (coaForm.isEdit) {
+        await updateCOA(outletFilter, coaForm.id, payload);
+        setMsg({ type: 'success', text: 'Akun COA berhasil diperbarui!' });
+      } else {
+        await createCOA(outletFilter, payload);
+        setMsg({ type: 'success', text: 'Akun COA berhasil ditambahkan!' });
+      }
+
       setIsCoaModalOpen(false);
-      setCoaForm({ code: '', name: '', type: 'asset', normal_balance: 'DEBIT', initial_balance: '0' });
+      setCoaForm({ id: '', isEdit: false, code: '', name: '', type: 'asset', normal_balance: 'DEBIT', initial_balance: '0' });
       loadData();
     } catch (err: any) {
-      setMsg({ type: 'error', text: err.message || 'Gagal menambahkan akun COA' });
+      setMsg({ type: 'error', text: err.message || 'Gagal menyimpan akun COA' });
     } finally {
       setSubmitting(false);
     }
@@ -185,7 +227,7 @@ export default function AccountingPage() {
 
           {activeTab === 'COA' && (
             <button
-              onClick={() => setIsCoaModalOpen(true)}
+              onClick={() => openCoaModal()}
               disabled={outletFilter === 'ALL'}
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl transition-all shadow-sm disabled:opacity-50"
             >
@@ -307,6 +349,7 @@ export default function AccountingPage() {
                   <th className="py-4 px-6">Saldo Normal</th>
                   <th className="py-4 px-6 text-right">Saldo Awal</th>
                   <th className="py-4 px-6">Status</th>
+                  <th className="py-4 px-6 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -331,6 +374,22 @@ export default function AccountingPage() {
                       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
                         Aktif
                       </span>
+                    </td>
+                    <td className="py-4 px-6 flex justify-end gap-2">
+                      <button
+                        onClick={() => openCoaModal(acc)}
+                        className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors"
+                        title="Edit Akun"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCoa(acc.id as string)}
+                        className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors"
+                        title="Hapus Akun"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -576,12 +635,12 @@ export default function AccountingPage() {
         </div>
       )}
 
-      {/* Add COA Modal */}
+      {/* Add / Edit COA Modal */}
       {isCoaModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl w-full max-w-md border border-slate-100 shadow-2xl p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-800 text-lg">Tambah Akun COA Baru</h3>
+              <h3 className="font-bold text-slate-800 text-lg">{coaForm.isEdit ? 'Edit Akun COA' : 'Tambah Akun COA Baru'}</h3>
               <button onClick={() => setIsCoaModalOpen(false)} className="text-slate-400 p-1">
                 <X className="w-5 h-5" />
               </button>
