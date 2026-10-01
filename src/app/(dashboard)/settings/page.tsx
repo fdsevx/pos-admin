@@ -22,7 +22,7 @@ import { getOutletSettings, updateOutletSettings, createOutlet, deleteOutlet } f
 import { OutletSettings } from '@/types';
 
 export default function SettingsPage() {
-  const { outletFilter, setOutletFilter, outlets, refreshOutlets, userProfile } = useOutlet();
+  const { outletFilter, setOutletFilter, outlets, locations, refreshOutlets, userProfile } = useOutlet();
 
   const [settings, setSettings] = useState<OutletSettings | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -34,6 +34,7 @@ export default function SettingsPage() {
   const [isCreateOutletModalOpen, setIsCreateOutletModalOpen] = useState<boolean>(false);
   const [newOutletName, setNewOutletName] = useState<string>('');
   const [newOutletSlug, setNewOutletSlug] = useState<string>('');
+  const [newLocationId, setNewLocationId] = useState<string>('');
   const [creatingOutlet, setCreatingOutlet] = useState<boolean>(false);
 
   const [form, setForm] = useState({
@@ -109,6 +110,7 @@ export default function SettingsPage() {
       const created = await createOutlet({
         name: newOutletName.trim(),
         slug: newOutletSlug.trim() || undefined,
+        location_id: newLocationId,
       });
 
       await refreshOutlets();
@@ -527,6 +529,23 @@ export default function SettingsPage() {
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Lokasi / Cabang Induk *
+                </label>
+                <select
+                  required
+                  value={newLocationId}
+                  onChange={(e) => setNewLocationId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-teal-500 outline-none"
+                >
+                  <option value="" disabled>-- Pilih Lokasi --</option>
+                  {locations?.map(loc => (
+                    <option key={loc.id} value={loc.id}>{loc.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">
                   Slug / URL Identifier (Opsional)
                 </label>
                 <input
@@ -555,7 +574,7 @@ export default function SettingsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={creatingOutlet || !newOutletName.trim()}
+                  disabled={creatingOutlet || !newOutletName.trim() || !newLocationId}
                   className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold shadow-sm disabled:opacity-50"
                 >
                   {creatingOutlet ? 'Membuat...' : 'Buat Unit Usaha'}
