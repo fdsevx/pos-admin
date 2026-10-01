@@ -26,18 +26,21 @@ export default function DashboardPage() {
 
   const [report, setReport] = useState<MonthlyReport | null>(null);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [balanceSheet, setBalanceSheet] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function loadDashboardData() {
       setLoading(true);
       try {
-        const [rep, chart] = await Promise.all([
+        const [rep, chart, bs] = await Promise.all([
           getMonthlyReport(outletFilter, selectedMonth, selectedYear, selectedLocationId).catch(() => null),
           getChartData(outletFilter, 'daily', selectedMonth, selectedYear, selectedLocationId).catch(() => []),
+          import('@/lib/api').then((api) => api.getBalanceSheet(outletFilter)).catch(() => null),
         ]);
         setReport(rep);
         setChartData(chart || []);
+        setBalanceSheet(bs?.data || bs || null);
       } catch (err) {
         console.error('Error loading dashboard data:', err);
       } finally {
@@ -288,34 +291,29 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 text-slate-700">
-                <tr>
-                  <td className="py-3 font-medium">Kas Restoran (1111)</td>
-                  <td className="py-3 text-slate-500">Tunai Laci</td>
-                  <td className="py-3 font-bold text-right text-slate-900">
-                    {formatRupiah(tunaiRevenue * 0.6)}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 font-medium">QRIS Restoran (1112)</td>
-                  <td className="py-3 text-slate-500">BCA / Mandiri</td>
-                  <td className="py-3 font-bold text-right text-slate-900">
-                    {formatRupiah(qrisRevenue * 0.65)}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 font-medium">Kas Cafe (1121)</td>
-                  <td className="py-3 text-slate-500">Tunai Laci</td>
-                  <td className="py-3 font-bold text-right text-slate-900">
-                    {formatRupiah(tunaiRevenue * 0.4)}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 font-medium">QRIS Cafe (1122)</td>
-                  <td className="py-3 text-slate-500">BCA / Mandiri</td>
-                  <td className="py-3 font-bold text-right text-slate-900">
-                    {formatRupiah(qrisRevenue * 0.35)}
-                  </td>
-                </tr>
+                {!balanceSheet ? (
+                  <tr>
+                    <td colSpan={3} className="py-6 text-center text-slate-400">
+                      Memuat data saldo...
+                    </td>
+                  </tr>
+                ) : balanceSheet.assets?.length > 0 ? (
+                  balanceSheet.assets.map((asset: any, idx: number) => (
+                    <tr key={idx}>
+                      <td className="py-3 font-medium">{asset.account_name}</td>
+                      <td className="py-3 text-slate-500">Aset</td>
+                      <td className="py-3 font-bold text-right text-slate-900">
+                        {formatRupiah(asset.balance || 0)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="py-6 text-center text-slate-400">
+                      Belum ada data kas / bank.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
