@@ -83,7 +83,11 @@ export default function OutletsPage() {
     setLocSubmitting(true);
     setErrorMsg('');
     try {
-      const created = await createLocation({ name: locName.trim() });
+      const generatedCode = locName.trim().substring(0, 5).toUpperCase().replace(/[^A-Z0-9]/g, '') + Math.floor(Math.random() * 10000);
+      const created = await createLocation({ 
+        name: locName.trim(),
+        code: generatedCode,
+      });
       await refreshOutlets();
       setSuccessMsg(`Lokasi "${created.name}" berhasil didaftarkan!`);
       setLocName('');

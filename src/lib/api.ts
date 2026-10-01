@@ -108,7 +108,7 @@ export async function getLocationsList() {
   return apiFetch<any[]>('/v1/locations');
 }
 
-export async function createLocation(payload: { name: string; address?: string; phone?: string; timezone?: string }) {
+export async function createLocation(payload: { name: string; code: string; address?: string; phone?: string; timezone?: string }) {
   return apiFetch<any>('/v1/locations', {
     method: 'POST',
     body: JSON.stringify(payload),
