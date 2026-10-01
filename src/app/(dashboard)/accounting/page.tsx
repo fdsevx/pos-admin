@@ -365,7 +365,7 @@ export default function AccountingPage() {
                       </span>
                     </td>
                     <td className="py-4 px-6 text-xs font-semibold text-slate-600">
-                      {acc.normal_balance}
+                      {acc.normal_balance || (['asset', 'expense'].includes(acc.type?.toLowerCase() || '') ? 'DEBIT' : 'CREDIT')}
                     </td>
                     <td className="py-4 px-6 text-right font-mono text-slate-800 text-xs font-semibold">
                       {formatRupiah(acc.initial_balance || '0')}
@@ -682,7 +682,11 @@ export default function AccountingPage() {
                   </label>
                   <select
                     value={coaForm.type}
-                    onChange={(e) => setCoaForm({ ...coaForm, type: e.target.value })}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      const newNormal = ['asset', 'expense'].includes(newType.toLowerCase()) ? 'DEBIT' : 'CREDIT';
+                      setCoaForm({ ...coaForm, type: newType, normal_balance: newNormal });
+                    }}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none"
                   >
                     <option value="asset">Aset</option>
@@ -695,12 +699,12 @@ export default function AccountingPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Saldo Normal
+                    Saldo Normal (Otomatis)
                   </label>
                   <select
                     value={coaForm.normal_balance}
-                    onChange={(e) => setCoaForm({ ...coaForm, normal_balance: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none"
+                    disabled
+                    className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-500 outline-none cursor-not-allowed"
                   >
                     <option value="DEBIT">DEBIT</option>
                     <option value="CREDIT">KREDIT</option>
