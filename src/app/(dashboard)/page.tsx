@@ -53,6 +53,7 @@ export default function DashboardPage() {
   let cogs = 0;
   let expenses = 0;
   let txCount = 0;
+  let voidCount = 0;
   let itemsSold = 0;
 
   if (Array.isArray(report)) {
@@ -61,6 +62,7 @@ export default function DashboardPage() {
       cogs += parseFloat(r.total_hpp || r.total_cogs || '0');
       expenses += parseFloat(r.total_pengeluaran || r.total_expenses || '0');
       txCount += parseInt(r.jumlah_transaksi ?? r.transaction_count ?? '0', 10);
+      voidCount += parseInt(r.jumlah_void ?? '0', 10);
       itemsSold += parseInt(r.produk_terjual ?? '0', 10);
     });
   } else {
@@ -68,9 +70,11 @@ export default function DashboardPage() {
     cogs = parseFloat((report as any)?.total_hpp || report?.total_cogs || '0');
     expenses = parseFloat((report as any)?.total_pengeluaran || report?.total_expenses || '0');
     txCount = (report as any)?.jumlah_transaksi ?? report?.transaction_count ?? 0;
+    voidCount = (report as any)?.jumlah_void ?? 0;
     itemsSold = (report as any)?.produk_terjual ?? 0;
   }
 
+  const totalTxTermasukVoid = txCount + voidCount;
   const netProfit = revenue - cogs - expenses;
   if (itemsSold === 0 && txCount > 0) itemsSold = txCount * 2 + Math.floor(Math.random() * 5); // Tampilkan fallback jika tx > 0
 
@@ -111,12 +115,12 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="mt-4">
-            <div className="text-xs text-slate-400 font-medium">Total Transaksi</div>
+            <div className="text-xs text-slate-400 font-medium">Total Riwayat Kasir</div>
             <div className="text-2xl font-bold text-slate-800 mt-0.5">
-              {txCount.toLocaleString('id-ID')}
+              {totalTxTermasukVoid.toLocaleString('id-ID')}
             </div>
             <div className="text-[11px] text-slate-400 mt-1">
-              Bulan {selectedMonth}/{selectedYear}
+              <span className="text-emerald-600 font-medium">{txCount} Berhasil</span> • <span className="text-rose-500 font-medium">{voidCount} Batal</span>
             </div>
           </div>
         </div>
