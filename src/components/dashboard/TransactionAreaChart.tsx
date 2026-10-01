@@ -20,11 +20,14 @@ interface Props {
 export default function TransactionAreaChart({ data }: Props) {
   // Format fallback demo data if backend has no transactions yet
   const chartData = data && data.length > 0
-    ? data.map((d) => ({
-        name: d.label.slice(-5) || d.label,
-        penjualan: parseFloat(d.revenue) || 0,
-        hpp: parseFloat(d.cogs) || 0,
-      }))
+    ? data.map((d: any) => {
+        const dateStr = d.date || d.label || '';
+        return {
+          name: dateStr ? dateStr.slice(-5) : '',
+          penjualan: parseFloat(d.revenue) || 0,
+          hpp: parseFloat(d.cogs) || 0,
+        };
+      })
     : [
         { name: '01/09', penjualan: 250000, hpp: 140000 },
         { name: '05/09', penjualan: 420000, hpp: 220000 },

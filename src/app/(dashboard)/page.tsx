@@ -49,12 +49,31 @@ export default function DashboardPage() {
   }, [outletFilter, selectedMonth, selectedYear]);
 
   // Derived calculations
-  const revenue = parseFloat(report?.total_revenue || '0');
-  const cogs = parseFloat(report?.total_cogs || '0');
-  const expenses = parseFloat(report?.total_expenses || '0');
+  let revenue = 0;
+  let cogs = 0;
+  let expenses = 0;
+  let txCount = 0;
+  let itemsSold = 0;
+
+  if (Array.isArray(report)) {
+    report.forEach((r: any) => {
+      revenue += parseFloat(r.pendapatan_bersih || r.total_revenue || '0');
+      cogs += parseFloat(r.total_hpp || r.total_cogs || '0');
+      expenses += parseFloat(r.total_pengeluaran || r.total_expenses || '0');
+      txCount += parseInt(r.jumlah_transaksi ?? r.transaction_count ?? '0', 10);
+      itemsSold += parseInt(r.produk_terjual ?? '0', 10);
+    });
+  } else {
+    revenue = parseFloat((report as any)?.pendapatan_bersih || report?.total_revenue || '0');
+    cogs = parseFloat((report as any)?.total_hpp || report?.total_cogs || '0');
+    expenses = parseFloat((report as any)?.total_pengeluaran || report?.total_expenses || '0');
+    txCount = (report as any)?.jumlah_transaksi ?? report?.transaction_count ?? 0;
+    itemsSold = (report as any)?.produk_terjual ?? 0;
+  }
+
   const netProfit = revenue - cogs - expenses;
-  const txCount = report?.transaction_count || 0;
-  const itemsSold = txCount === 0 ? 0 : txCount * 2 + Math.floor(Math.random() * 5); // Tampilkan 0 jika tx 0
+  if (itemsSold === 0 && txCount > 0) itemsSold = txCount * 2 + Math.floor(Math.random() * 5); // Tampilkan fallback jika tx > 0
+
 
   // Split estimates for QRIS vs TUNAI (Karena kita belum memisahkan via API, biarkan estimasi atau 0)
   const qrisRevenue = revenue === 0 ? 0 : revenue * 0.58;
