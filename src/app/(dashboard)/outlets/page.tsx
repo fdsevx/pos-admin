@@ -21,7 +21,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useOutlet } from '@/context/OutletContext';
-import { createOutlet, deleteOutlet } from '@/lib/api';
+import { createOutlet, deleteOutlet, createLocation } from '@/lib/api';
 
 export default function OutletsPage() {
   const router = useRouter();
@@ -37,6 +37,11 @@ export default function OutletsPage() {
   const [slug, setSlug] = useState<string>('');
   const [locationId, setLocationId] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  // Modal Tambah Lokasi / Cabang
+  const [isLocModalOpen, setIsLocModalOpen] = useState<boolean>(false);
+  const [locName, setLocName] = useState<string>('');
+  const [locSubmitting, setLocSubmitting] = useState<boolean>(false);
 
   const isSuperAdmin = userProfile?.role === 'super_admin';
 
@@ -68,6 +73,26 @@ export default function OutletsPage() {
       setErrorMsg(err.message || 'Gagal menambahkan unit usaha baru');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleCreateLocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!locName.trim()) return;
+
+    setLocSubmitting(true);
+    setErrorMsg('');
+    try {
+      const created = await createLocation({ name: locName.trim() });
+      await refreshOutlets();
+      setSuccessMsg(`Lokasi "${created.name}" berhasil didaftarkan!`);
+      setLocName('');
+      setIsLocModalOpen(false);
+      setTimeout(() => setSuccessMsg(''), 4000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Gagal menambahkan lokasi baru');
+    } finally {
+      setLocSubmitting(false);
     }
   };
 
@@ -129,13 +154,22 @@ export default function OutletsPage() {
           </button>
 
           {isSuperAdmin && (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Tambah Unit Usaha</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsLocModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Lokasi Induk</span>
+              </button>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Unit Usaha</span>
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -444,6 +478,58 @@ export default function OutletsPage() {
                   className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold shadow-sm disabled:opacity-50"
                 >
                   {submitting ? 'Menyimpan...' : 'Simpan Unit Usaha'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL TAMBAH LOKASI INDUK */}
+      {isLocModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-sm border border-slate-100 shadow-2xl p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+                <Store className="w-5 h-5 text-slate-800" />
+                <span>Tambah Lokasi Induk</span>
+              </h3>
+              <button
+                onClick={() => setIsLocModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateLocation} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Nama Lokasi / Cabang *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={locName}
+                  onChange={(e) => setLocName(e.target.value)}
+                  placeholder="Contoh: Cabang Sudirman, Malang Pusat"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-teal-500 outline-none"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsLocModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-medium hover:bg-slate-50"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={locSubmitting || !locName.trim()}
+                  className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold shadow-sm disabled:opacity-50"
+                >
+                  {locSubmitting ? 'Menyimpan...' : 'Simpan Lokasi'}
                 </button>
               </div>
             </form>

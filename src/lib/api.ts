@@ -108,6 +108,13 @@ export async function getLocationsList() {
   return apiFetch<any[]>('/v1/locations');
 }
 
+export async function createLocation(payload: { name: string; address?: string; phone?: string; timezone?: string }) {
+  return apiFetch<any>('/v1/locations', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function getOutletsList() {
   return apiFetch<any[]>('/v1/outlets');
 }
@@ -326,11 +333,18 @@ export async function voidTransaction(outletSlug: string, id: string, reason: st
   });
 }
 
-export async function getTransactionsList(outletSlug: string, from?: string, to?: string): Promise<Transaction[]> {
-  if (outletSlug === 'ALL') return [];
+export async function getTransactionsList(outletSlug: string, from?: string, to?: string, locationId?: string): Promise<Transaction[]> {
   const params = new URLSearchParams();
   if (from) params.append('from', from);
   if (to) params.append('to', to);
+  
+  if (outletSlug === 'ALL') {
+    if (locationId && locationId !== 'ALL') {
+      params.append('location_id', locationId);
+    }
+    return apiFetch<Transaction[]>(`/v1/all/reports/export?${params.toString()}`);
+  }
+  
   return apiFetch<Transaction[]>(`/v1/${outletSlug}/reports/export?${params.toString()}`);
 }
 

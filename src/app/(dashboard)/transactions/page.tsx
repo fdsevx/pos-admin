@@ -37,9 +37,9 @@ interface CartItem {
 }
 
 export default function TransactionsPage() {
-  const { outletFilter, outlets } = useOutlet();
+  const { outletFilter, selectedLocationId, outlets } = useOutlet();
 
-  const [activeTab, setActiveTab] = useState<'pos' | 'history'>('pos');
+  const [activeTab, setActiveTab] = useState<'pos' | 'history'>(outletFilter === 'ALL' ? 'history' : 'pos');
 
   // POS State
   const [products, setProducts] = useState<Product[]>([]);
@@ -71,18 +71,24 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const loadData = async () => {
-    if (outletFilter === 'ALL') return;
     setLoading(true);
     setMsg(null);
     try {
-      const [prods, custs, txs] = await Promise.all([
-        getProducts(outletFilter).catch(() => []),
-        getCustomers(outletFilter).catch(() => []),
-        getTransactionsList(outletFilter).catch(() => []),
-      ]);
-      setProducts(prods || []);
-      setCustomers(custs || []);
-      setTransactions(txs || []);
+      if (outletFilter === 'ALL') {
+        const txs = await getTransactionsList(outletFilter, undefined, undefined, selectedLocationId).catch(() => []);
+        setTransactions(txs || []);
+        setProducts([]);
+        setCustomers([]);
+      } else {
+        const [prods, custs, txs] = await Promise.all([
+          getProducts(outletFilter).catch(() => []),
+          getCustomers(outletFilter).catch(() => []),
+          getTransactionsList(outletFilter).catch(() => []),
+        ]);
+        setProducts(prods || []);
+        setCustomers(custs || []);
+        setTransactions(txs || []);
+      }
     } catch (err: any) {
       console.error(err);
       setMsg({ type: 'error', text: err.message || 'Gagal memuat data' });
@@ -94,7 +100,8 @@ export default function TransactionsPage() {
   useEffect(() => {
     loadData();
     setCart([]);
-  }, [outletFilter]);
+    if (outletFilter === 'ALL') setActiveTab('history');
+  }, [outletFilter, selectedLocationId]);
 
   // Cart operations
   const addToCart = (product: Product) => {
@@ -299,7 +306,7 @@ export default function TransactionsPage() {
         </div>
       )}
 
-      {outletFilter === 'ALL' ? (
+      {outletFilter === 'ALL' && activeTab === 'pos' ? (
         <div className="p-12 text-center bg-white border border-slate-200 rounded-3xl shadow-sm">
           <Store className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-base font-semibold text-slate-800 mb-1">
