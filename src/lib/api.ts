@@ -57,6 +57,7 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
   };
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    cache: 'no-store',
     ...options,
     headers,
   });
@@ -111,7 +112,7 @@ export async function getOutletsList() {
   return apiFetch<any[]>('/v1/outlets');
 }
 
-export async function createOutlet(payload: { name: string; slug?: string; is_active?: boolean }) {
+export async function createOutlet(payload: { name: string; slug?: string; is_active?: boolean; location_id: string }) {
   return apiFetch<any>('/v1/outlets', {
     method: 'POST',
     body: JSON.stringify({

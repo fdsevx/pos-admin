@@ -67,6 +67,7 @@ export default function InventoryPage() {
     outlet_id: '',
     outlet_type: 'RESTORAN' as 'RESTORAN' | 'CAFE',
   });
+  const [editProductId, setEditProductId] = useState<string | null>(null);
 
   const loadCategories = async () => {
     try {
@@ -178,6 +179,24 @@ export default function InventoryPage() {
     }
   };
 
+  const handleOpenEditProduct = (product: Product) => {
+    setEditProductId(product.id);
+    setProductForm({
+      name: product.name,
+      sku: product.sku,
+      category: product.category || 'Makanan',
+      category_id: product.category_id || '',
+      price: product.price,
+      cogs: product.cogs,
+      stock_quantity: product.stock_quantity,
+      min_stock: product.min_stock || 5,
+      unit: product.unit || 'Pcs',
+      outlet_id: product.outlet_id || '',
+      outlet_type: product.outlet_type as any || 'RESTORAN',
+    });
+    setIsProductModalOpen(true);
+  };
+
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -185,13 +204,22 @@ export default function InventoryPage() {
       const targetSlug = outletFilter === 'ALL' ? (selectedOutlet?.slug || outlets[0]?.slug || 'ALL') : outletFilter;
       const resolvedOutletId = productForm.outlet_id || selectedOutlet?.id || outlets[0]?.id;
 
-      await createProduct(targetSlug, {
-        ...productForm,
-        outlet_id: resolvedOutletId,
-        category_id: productForm.category_id || undefined,
-      });
+      if (editProductId) {
+        await updateProduct(targetSlug, editProductId, {
+          ...productForm,
+          outlet_id: resolvedOutletId,
+          category_id: productForm.category_id || undefined,
+        });
+      } else {
+        await createProduct(targetSlug, {
+          ...productForm,
+          outlet_id: resolvedOutletId,
+          category_id: productForm.category_id || undefined,
+        });
+      }
 
       setIsProductModalOpen(false);
+      setEditProductId(null);
       setProductForm({
         name: '',
         sku: '',
@@ -207,7 +235,7 @@ export default function InventoryPage() {
       });
       loadData();
     } catch (err: any) {
-      alert(`Gagal menambah produk: ${err.message}`);
+      alert(`Gagal menyimpan produk: ${err.message}`);
     }
   };
 
@@ -468,6 +496,14 @@ export default function InventoryPage() {
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
+                          {/* Edit Button */}
+                          <button
+                            onClick={() => handleOpenEditProduct(p)}
+                            className="p-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                            title="Edit Produk"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
                           {/* Opname Button */}
                           <button
                             onClick={() => handleOpenOpname(p)}
@@ -613,16 +649,32 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {/* MODAL FORM: TAMBAH PRODUK BARU */}
+      {/* MODAL FORM: TAMBAH / EDIT PRODUK BARU */}
       {isProductModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-bold text-slate-800 text-base">
-                Tambah Produk Baru
+                {editProductId ? 'Edit Produk' : 'Tambah Produk Baru'}
               </h3>
               <button
-                onClick={() => setIsProductModalOpen(false)}
+                onClick={() => {
+                  setIsProductModalOpen(false);
+                  setEditProductId(null);
+                  setProductForm({
+                    name: '',
+                    sku: '',
+                    category: 'Makanan',
+                    category_id: '',
+                    price: '',
+                    cogs: '',
+                    stock_quantity: 0,
+                    min_stock: 5,
+                    unit: 'Pcs',
+                    outlet_id: outlets[0]?.id || '',
+                    outlet_type: 'RESTORAN',
+                  });
+                }}
                 className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
               >
                 <X className="w-5 h-5" />
@@ -828,7 +880,7 @@ export default function InventoryPage() {
                   type="submit"
                   className="px-5 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-bold shadow-sm"
                 >
-                  Simpan Produk
+                  {editProductId ? 'Simpan Perubahan' : 'Simpan Produk'}
                 </button>
               </div>
             </form>

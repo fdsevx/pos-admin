@@ -25,7 +25,7 @@ import { createOutlet, deleteOutlet } from '@/lib/api';
 
 export default function OutletsPage() {
   const router = useRouter();
-  const { outletFilter, setOutletFilter, outlets, refreshOutlets, userProfile } = useOutlet();
+  const { outletFilter, setOutletFilter, outlets, refreshOutlets, userProfile, locations } = useOutlet();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string>('');
@@ -35,6 +35,7 @@ export default function OutletsPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [name, setName] = useState<string>('');
   const [slug, setSlug] = useState<string>('');
+  const [locationId, setLocationId] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const isSuperAdmin = userProfile?.role === 'super_admin';
@@ -42,6 +43,10 @@ export default function OutletsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    if (!locationId) {
+      setErrorMsg('Pilih Lokasi terlebih dahulu');
+      return;
+    }
 
     setSubmitting(true);
     setErrorMsg('');
@@ -49,6 +54,7 @@ export default function OutletsPage() {
       const created = await createOutlet({
         name: name.trim(),
         slug: slug.trim() || undefined,
+        location_id: locationId,
         is_active: true,
       });
 
@@ -362,6 +368,23 @@ export default function OutletsPage() {
             </div>
 
             <form onSubmit={handleCreate} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Pilih Lokasi (Cabang) *
+                </label>
+                <select
+                  required
+                  value={locationId}
+                  onChange={(e) => setLocationId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-teal-500 outline-none"
+                >
+                  <option value="" disabled>-- Pilih Lokasi --</option>
+                  {locations?.map(loc => (
+                    <option key={loc.id} value={loc.id}>{loc.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">
                   Nama Unit Usaha *
