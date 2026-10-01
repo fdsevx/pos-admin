@@ -23,12 +23,16 @@ export default function Header() {
   const {
     outletFilter,
     setOutletFilter,
+    selectedLocationId,
+    setSelectedLocationId,
     selectedMonth,
     setSelectedMonth,
     selectedYear,
     setSelectedYear,
     setIsMobileMenuOpen,
     outlets,
+    locations,
+    filteredOutlets,
     userProfile,
   } = useOutlet();
 
@@ -111,7 +115,32 @@ export default function Header() {
         <div className="flex items-center bg-slate-50 border border-slate-200/80 rounded-xl px-2.5 py-1.5 gap-2">
           <Store className="w-4 h-4 text-teal-600" />
           <span className="text-xs text-slate-500 font-semibold hidden md:inline">
-            Pilih Unit Usaha:
+            Lokasi:
+          </span>
+          <select
+            value={selectedLocationId}
+            onChange={(e) => {
+              setSelectedLocationId(e.target.value);
+              if (e.target.value === 'ALL') {
+                setOutletFilter('ALL');
+              }
+            }}
+            className="bg-transparent text-xs sm:text-sm font-bold text-slate-700 outline-none cursor-pointer"
+            title="Pilih Lokasi"
+            aria-label="Pilih Lokasi"
+          >
+            <option value="ALL">Semua Lokasi</option>
+            {locations?.map(loc => (
+              <option key={loc.id} value={loc.id}>
+                {loc.name}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-slate-300 font-semibold hidden md:inline mx-1">
+            |
+          </span>
+          <span className="text-xs text-slate-500 font-semibold hidden md:inline">
+            Unit:
           </span>
           <select
             value={outletFilter}
@@ -120,8 +149,8 @@ export default function Header() {
             title="Pilih Unit Usaha"
             aria-label="Pilih Unit Usaha"
           >
-            <option value="ALL">Semua Unit Usaha</option>
-            {outlets?.map(outlet => (
+            <option value="ALL">Semua Unit</option>
+            {filteredOutlets?.map(outlet => (
               <option key={outlet.id} value={outlet.slug}>
                 {outlet.name}
               </option>

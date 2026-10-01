@@ -1,5 +1,18 @@
 export type OutletFilter = string;
 
+export interface Location {
+  id: string;
+  name: string;
+  code: string;
+}
+
+export interface BusinessUnit {
+  id: string;
+  name: string;
+  slug: string;
+  location_id: string;
+  is_active: boolean;
+}
 export interface Product {
   id: string;
   name: string;

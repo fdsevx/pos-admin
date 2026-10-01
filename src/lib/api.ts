@@ -103,6 +103,10 @@ export async function loginAdmin(username: string = 'admin', password: string = 
   return data;
 }
 
+export async function getLocationsList() {
+  return apiFetch<any[]>('/v1/locations');
+}
+
 export async function getOutletsList() {
   return apiFetch<any[]>('/v1/outlets');
 }
