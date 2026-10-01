@@ -22,7 +22,7 @@ import RevenueBarChart from '@/components/dashboard/RevenueBarChart';
 import CategoryDonutChart from '@/components/dashboard/CategoryDonutChart';
 
 export default function DashboardPage() {
-  const { outletFilter, selectedMonth, selectedYear, outlets } = useOutlet();
+  const { outletFilter, selectedLocationId, selectedMonth, selectedYear, outlets } = useOutlet();
 
   const [report, setReport] = useState<MonthlyReport | null>(null);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
@@ -33,8 +33,8 @@ export default function DashboardPage() {
       setLoading(true);
       try {
         const [rep, chart] = await Promise.all([
-          getMonthlyReport(outletFilter, selectedMonth, selectedYear).catch(() => null),
-          getChartData(outletFilter, 'daily', selectedMonth, selectedYear).catch(() => []),
+          getMonthlyReport(outletFilter, selectedMonth, selectedYear, selectedLocationId).catch(() => null),
+          getChartData(outletFilter, 'daily', selectedMonth, selectedYear, selectedLocationId).catch(() => []),
         ]);
         setReport(rep);
         setChartData(chart || []);
@@ -46,7 +46,7 @@ export default function DashboardPage() {
     }
 
     loadDashboardData();
-  }, [outletFilter, selectedMonth, selectedYear]);
+  }, [outletFilter, selectedLocationId, selectedMonth, selectedYear]);
 
   // Derived calculations
   let revenue = 0;

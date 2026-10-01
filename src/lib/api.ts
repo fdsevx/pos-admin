@@ -129,22 +129,31 @@ export async function deleteOutlet(outletId: string) {
 }
 
 // ----------------- Reports & Dashboard API -----------------
-export async function getMonthlyReport(outletSlug: string, month: number = 9, year: number = 2026): Promise<MonthlyReport> {
+export async function getMonthlyReport(outletSlug: string, month: number = 9, year: number = 2026, locationId?: string): Promise<MonthlyReport> {
   const monthStr = `${year}-${String(month).padStart(2, '0')}`;
-  const endpoint = outletSlug === 'ALL' 
+  let endpoint = outletSlug === 'ALL' 
     ? `/v1/all/reports/monthly?month=${monthStr}` 
     : `/v1/${outletSlug}/reports/monthly?month=${monthStr}`;
+    
+  if (outletSlug === 'ALL' && locationId && locationId !== 'ALL') {
+    endpoint += `&location_id=${locationId}`;
+  }
   
   return apiFetch<MonthlyReport>(endpoint);
 }
 
-export async function getChartData(outletSlug: string, period: 'daily' | 'monthly' = 'daily', month: number = 9, year: number = 2026): Promise<ChartDataPoint[]> {
+export async function getChartData(outletSlug: string, period: 'daily' | 'monthly' = 'daily', month: number = 9, year: number = 2026, locationId?: string): Promise<ChartDataPoint[]> {
   const monthStr = `${year}-${String(month).padStart(2, '0')}`;
   
-  // Backend allReportRouter currently doesn't have /chart, so we return empty if ALL
-  if (outletSlug === 'ALL') return [];
+  let endpoint = outletSlug === 'ALL'
+    ? `/v1/all/reports/chart?month=${monthStr}`
+    : `/v1/${outletSlug}/reports/chart?month=${monthStr}`;
+    
+  if (outletSlug === 'ALL' && locationId && locationId !== 'ALL') {
+    endpoint += `&location_id=${locationId}`;
+  }
   
-  return apiFetch<ChartDataPoint[]>(`/v1/${outletSlug}/reports/chart?month=${monthStr}`);
+  return apiFetch<ChartDataPoint[]>(endpoint);
 }
 
 export function getExportUrl(format: 'pdf' | 'excel', month: number = 9, year: number = 2026, outletSlug: string = 'ALL'): string {
