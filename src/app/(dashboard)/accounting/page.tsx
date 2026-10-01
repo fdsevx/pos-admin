@@ -74,7 +74,6 @@ export default function AccountingPage() {
     name: '',
     type: 'asset',
     normal_balance: 'DEBIT',
-    initial_balance: '0',
   });
 
   const openCoaModal = (acc?: Account) => {
@@ -86,10 +85,9 @@ export default function AccountingPage() {
         name: acc.name,
         type: acc.type,
         normal_balance: acc.normal_balance,
-        initial_balance: acc.initial_balance?.toString() || '0',
       });
     } else {
-      setCoaForm({ id: '', isEdit: false, code: '', name: '', type: 'asset', normal_balance: 'DEBIT', initial_balance: '0' });
+      setCoaForm({ id: '', isEdit: false, code: '', name: '', type: 'asset', normal_balance: 'DEBIT' });
     }
     setIsCoaModalOpen(true);
   };
@@ -167,7 +165,6 @@ export default function AccountingPage() {
         name: coaForm.name,
         type: coaForm.type,
         normal_balance: coaForm.normal_balance,
-        initial_balance: parseFloat(coaForm.initial_balance) || 0,
       };
 
       if (coaForm.isEdit) {
@@ -179,7 +176,7 @@ export default function AccountingPage() {
       }
 
       setIsCoaModalOpen(false);
-      setCoaForm({ id: '', isEdit: false, code: '', name: '', type: 'asset', normal_balance: 'DEBIT', initial_balance: '0' });
+      setCoaForm({ id: '', isEdit: false, code: '', name: '', type: 'asset', normal_balance: 'DEBIT' });
       loadData();
     } catch (err: any) {
       setMsg({ type: 'error', text: err.message || 'Gagal menyimpan akun COA' });
@@ -347,7 +344,6 @@ export default function AccountingPage() {
                   <th className="py-4 px-6">Nama Akun</th>
                   <th className="py-4 px-6">Tipe Akun</th>
                   <th className="py-4 px-6">Saldo Normal</th>
-                  <th className="py-4 px-6 text-right">Saldo Awal</th>
                   <th className="py-4 px-6">Status</th>
                   <th className="py-4 px-6 text-right">Aksi</th>
                 </tr>
@@ -366,9 +362,6 @@ export default function AccountingPage() {
                     </td>
                     <td className="py-4 px-6 text-xs font-semibold text-slate-600">
                       {acc.normal_balance || (['asset', 'expense'].includes(acc.type?.toLowerCase() || '') ? 'DEBIT' : 'CREDIT')}
-                    </td>
-                    <td className="py-4 px-6 text-right font-mono text-slate-800 text-xs font-semibold">
-                      {formatRupiah(acc.initial_balance || '0')}
                     </td>
                     <td className="py-4 px-6">
                       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
@@ -710,19 +703,6 @@ export default function AccountingPage() {
                     <option value="CREDIT">KREDIT</option>
                   </select>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Saldo Awal (Rp)
-                </label>
-                <input
-                  type="number"
-                  value={coaForm.initial_balance}
-                  onChange={(e) => setCoaForm({ ...coaForm, initial_balance: e.target.value })}
-                  placeholder="Contoh: 10000000"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-teal-500 outline-none"
-                />
               </div>
 
               <div className="flex gap-3 pt-3">

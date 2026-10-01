@@ -86,7 +86,6 @@ export interface Account {
   type: string;
   normal_balance: string;
   is_active?: boolean;
-  initial_balance?: string | number;
 }
 
 export interface JournalLine {
