@@ -84,17 +84,23 @@ export default function OutletsPage() {
     setErrorMsg('');
     try {
       const generatedCode = locName.trim().substring(0, 5).toUpperCase().replace(/[^A-Z0-9]/g, '') + Math.floor(Math.random() * 10000);
+      
+      // Tutup modal lebih awal agar terasa instan
+      setIsLocModalOpen(false);
+      setSuccessMsg(`Memproses penambahan lokasi...`);
+      
       const created = await createLocation({ 
         name: locName.trim(),
         code: generatedCode,
       });
+      
       await refreshOutlets();
       setSuccessMsg(`Lokasi "${created.name}" berhasil didaftarkan!`);
       setLocName('');
-      setIsLocModalOpen(false);
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err: any) {
       setErrorMsg(err.message || 'Gagal menambahkan lokasi baru');
+      setIsLocModalOpen(true); // buka kembali jika gagal
     } finally {
       setLocSubmitting(false);
     }
