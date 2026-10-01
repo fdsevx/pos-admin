@@ -80,11 +80,13 @@ export interface Expense {
 }
 
 export interface Account {
+  id?: string;
   code: string;
   name: string;
   type: string;
   normal_balance: string;
-  is_active: boolean;
+  is_active?: boolean;
+  initial_balance?: string | number;
 }
 
 export interface JournalLine {
