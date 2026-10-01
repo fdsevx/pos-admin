@@ -514,11 +514,11 @@ export default function AccountingPage() {
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-1">
                   Pendapatan Operasional
                 </h4>
-                {incomeStatement.revenues?.map((r: any, idx: number) => (
+                {incomeStatement.revenue?.map((r: any, idx: number) => (
                   <div key={idx} className="flex justify-between text-sm py-1">
                     <span className="text-slate-700">{r.account_name}</span>
                     <span className="font-mono font-semibold text-slate-900">
-                      {formatRupiah(r.net_balance)}
+                      {formatRupiah(r.net_balance || 0)}
                     </span>
                   </div>
                 ))}
@@ -533,11 +533,11 @@ export default function AccountingPage() {
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-1">
                   Beban Usaha & HPP
                 </h4>
-                {incomeStatement.expenses?.map((e: any, idx: number) => (
+                {incomeStatement.expense?.map((e: any, idx: number) => (
                   <div key={idx} className="flex justify-between text-sm py-1">
                     <span className="text-slate-700">{e.account_name}</span>
                     <span className="font-mono font-semibold text-rose-600">
-                      {formatRupiah(e.net_balance)}
+                      {formatRupiah(e.net_balance || 0)}
                     </span>
                   </div>
                 ))}
@@ -584,7 +584,7 @@ export default function AccountingPage() {
                   <div key={idx} className="flex justify-between text-sm py-1">
                     <span className="text-slate-700">{a.account_name}</span>
                     <span className="font-mono font-semibold text-slate-900">
-                      {formatRupiah(a.balance)}
+                      {formatRupiah(a.net_balance || 0)}
                     </span>
                   </div>
                 ))}
@@ -602,7 +602,7 @@ export default function AccountingPage() {
                   <div key={idx} className="flex justify-between text-sm py-1">
                     <span className="text-slate-700">{l.account_name}</span>
                     <span className="font-mono font-semibold text-slate-900">
-                      {formatRupiah(l.balance)}
+                      {formatRupiah(l.net_balance || 0)}
                     </span>
                   </div>
                 ))}
@@ -610,16 +610,14 @@ export default function AccountingPage() {
                   <div key={idx} className="flex justify-between text-sm py-1">
                     <span className="text-slate-700">{e.account_name}</span>
                     <span className="font-mono font-semibold text-slate-900">
-                      {formatRupiah(e.balance)}
+                      {formatRupiah(e.net_balance || 0)}
                     </span>
                   </div>
                 ))}
                 <div className="flex justify-between text-sm font-bold pt-2 border-t text-slate-900">
                   <span>Total Kewajiban & Ekuitas</span>
                   <span>
-                    {formatRupiah(
-                      (balanceSheet.total_liabilities || 0) + (balanceSheet.total_equity || 0)
-                    )}
+                    {formatRupiah(balanceSheet.total_liabilities_and_equity || 0)}
                   </span>
                 </div>
               </div>
