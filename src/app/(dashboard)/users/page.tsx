@@ -21,6 +21,7 @@ import {
   createUser,
   resetUserPassword,
   deleteUser,
+  approveUser,
 } from '@/lib/api';
 
 export default function UsersPage() {
@@ -44,6 +45,14 @@ export default function UsersPage() {
   const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
   const [selectedUserForReset, setSelectedUserForReset] = useState<any | null>(null);
   const [newPassword, setNewPassword] = useState<string>('');
+
+  // Approve Modal
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState<boolean>(false);
+  const [selectedUserForApprove, setSelectedUserForApprove] = useState<any | null>(null);
+  const [approveForm, setApproveForm] = useState({
+    role: 'cashier',
+    outlet_ids: [] as string[],
+  });
 
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -130,11 +139,43 @@ export default function UsersPage() {
     }
   };
 
+  const handleOpenApprove = (user: any) => {
+    setSelectedUserForApprove(user);
+    setApproveForm({
+      role: 'cashier',
+      outlet_ids: [] as string[],
+    });
+    setIsApproveModalOpen(true);
+  };
+
+  const handleApproveUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUserForApprove) return;
+    setSubmitting(true);
+    setMsg(null);
+    try {
+      await approveUser(selectedUserForApprove.id, {
+        role: approveForm.role,
+        outlet_ids: approveForm.outlet_ids,
+      });
+      setMsg({ type: 'success', text: `Pegawai "${selectedUserForApprove.display_name}" berhasil disetujui!` });
+      setIsApproveModalOpen(false);
+      loadUsers();
+    } catch (err: any) {
+      setMsg({ type: 'error', text: err.message || 'Gagal menyetujui pegawai' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const filteredUsers = users.filter((u) => {
     const nameMatch = u.display_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const usernameMatch = u.username?.toLowerCase().includes(searchTerm.toLowerCase());
     return nameMatch || usernameMatch;
   });
+
+  const activeUsers = filteredUsers.filter(u => u.role !== 'pending');
+  const pendingUsers = filteredUsers.filter(u => u.role === 'pending');
 
   return (
     <div className="space-y-6">
@@ -207,7 +248,48 @@ export default function UsersPage() {
         </span>
       </div>
 
-      {/* Users Table */}
+      {/* Pending Users Table */}
+      {pendingUsers.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-3xl overflow-hidden shadow-sm mb-8">
+          <div className="p-4 bg-amber-100/50 border-b border-amber-200">
+            <h2 className="font-bold text-amber-800 flex items-center gap-2 text-sm">
+              <ShieldAlert className="w-5 h-5 text-amber-600" />
+              Menunggu Persetujuan ({pendingUsers.length})
+            </h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-amber-100/30 border-b border-amber-200 text-xs font-semibold text-amber-700 uppercase tracking-wider">
+                <tr>
+                  <th className="py-4 px-6">Nama</th>
+                  <th className="py-4 px-6">Username</th>
+                  <th className="py-4 px-6">Waktu Daftar</th>
+                  <th className="py-4 px-6 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-amber-200/50">
+                {pendingUsers.map(u => (
+                  <tr key={u.id} className="hover:bg-amber-100/50">
+                    <td className="py-4 px-6 font-bold text-amber-900">{u.display_name}</td>
+                    <td className="py-4 px-6 font-mono text-xs text-amber-800">@{u.username}</td>
+                    <td className="py-4 px-6 text-amber-700">{new Date(u.created_at).toLocaleDateString('id-ID')}</td>
+                    <td className="py-4 px-6 text-right">
+                      <button
+                        onClick={() => handleOpenApprove(u)}
+                        className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-colors"
+                      >
+                        Approve
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Active Users Table */}
       <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -390,8 +472,8 @@ export default function UsersPage() {
                   <option value="cashier">Kasir (Cashier)</option>
                   <option value="manager">Manajer Unit Usaha</option>
                   <option value="accountant">Akuntan (Keuangan)</option>
-                  <option value="admin">Administrator</option>
-                  <option value="super_admin">Super Admin</option>
+                  <option value="kitchen">Dapur (Kitchen)</option>
+                  <option value="crm_staff">Staff CRM</option>
                 </select>
               </div>
 
@@ -469,6 +551,100 @@ export default function UsersPage() {
                   className="w-1/2 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shadow-sm disabled:opacity-50"
                 >
                   {submitting ? 'Menyimpan...' : 'Daftarkan Pegawai'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Modal */}
+      {isApproveModalOpen && selectedUserForApprove && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-md border border-slate-100 shadow-2xl p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-slate-800 text-lg">Persetujuan Akun</h3>
+              <button onClick={() => setIsApproveModalOpen(false)} className="text-slate-400 p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-600">
+              Pilih peran dan akses unit usaha untuk <strong>{selectedUserForApprove.display_name}</strong> (@{selectedUserForApprove.username}).
+            </p>
+
+            <form onSubmit={handleApproveUser} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Role (Peran)
+                </label>
+                <select
+                  value={approveForm.role}
+                  onChange={(e) => setApproveForm({ ...approveForm, role: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none"
+                >
+                  <option value="cashier">Cashier (Kasir)</option>
+                  <option value="kitchen">Kitchen (Dapur)</option>
+                  <option value="manager">Manager (Manajer)</option>
+                  <option value="accountant">Accountant (Akuntan)</option>
+                  <option value="crm_staff">CRM Staff</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                  Akses Unit Usaha (Outlets)
+                </label>
+                <div className="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto">
+                  {outlets.map((o) => {
+                    const isChecked = approveForm.outlet_ids.includes(o.id);
+                    return (
+                      <label
+                        key={o.id}
+                        className="flex items-center gap-3 p-2.5 bg-white rounded-xl border border-slate-100 shadow-xs cursor-pointer hover:bg-teal-50/50 transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setApproveForm({
+                                ...approveForm,
+                                outlet_ids: [...approveForm.outlet_ids, o.id],
+                              });
+                            } else {
+                              setApproveForm({
+                                ...approveForm,
+                                outlet_ids: approveForm.outlet_ids.filter((id) => id !== o.id),
+                              });
+                            }
+                          }}
+                          className="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 border-slate-300"
+                        />
+                        <div className="flex-1">
+                          <span className="text-xs font-bold text-slate-800">{o.name}</span>
+                          <span className="text-[10px] text-slate-400 block font-mono">slug: {o.slug}</span>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setIsApproveModalOpen(false)}
+                  className="w-1/2 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting || approveForm.outlet_ids.length === 0}
+                  className="w-1/2 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm disabled:opacity-50"
+                >
+                  {submitting ? 'Memproses...' : 'Setujui & Simpan'}
                 </button>
               </div>
             </form>

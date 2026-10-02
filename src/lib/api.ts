@@ -449,6 +449,13 @@ export async function createUser(payload: { username: string; password: string; 
   });
 }
 
+export async function approveUser(id: string, payload: { role: string; outlet_ids: string[] }): Promise<any> {
+  return apiFetch<any>(`/v1/users/${id}/approve`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function updateUser(id: string, payload: any): Promise<any> {
   return apiFetch<any>(`/v1/users/${id}`, {
     method: 'PUT',
