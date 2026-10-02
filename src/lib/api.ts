@@ -497,7 +497,7 @@ export async function getDashboardSummary(outletSlug: string, startDate?: string
   if (endDate) params.append('end_date', endDate);
   
   if (outletSlug === 'ALL') {
-    return apiFetch<any>(`/v1/reports/summary?${params.toString()}`);
+    return apiFetch<any>(`/v1/all/reports/summary?${params.toString()}`);
   }
   return apiFetch<any>(`/v1/${outletSlug}/reports/summary?${params.toString()}`);
 }
@@ -508,7 +508,7 @@ export async function getDashboardChart(outletSlug: string, startDate?: string, 
   if (endDate) params.append('end_date', endDate);
   
   if (outletSlug === 'ALL') {
-    return apiFetch<any>(`/v1/reports/chart?${params.toString()}`);
+    return apiFetch<any>(`/v1/all/reports/chart?${params.toString()}`);
   }
   return apiFetch<any>(`/v1/${outletSlug}/reports/chart?${params.toString()}`);
 }
