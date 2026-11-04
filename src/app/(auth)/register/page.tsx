@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { User, Lock, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { API_BASE_URL } from '@/lib/api';
+import { API_BASE_URL, getApiErrorMessage } from '@/lib/api';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrorMsg(data.message || data.error || 'Pendaftaran gagal. Silakan coba lagi.');
+        setErrorMsg(getApiErrorMessage(data, 'Pendaftaran gagal. Silakan coba lagi.'));
         setLoading(false);
         return;
       }

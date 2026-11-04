@@ -104,10 +104,7 @@ export default function InventoryPage() {
     setCatLoading(true);
     try {
       const targetSlug = outletFilter === 'ALL' ? (outlets[0]?.slug || 'ALL') : outletFilter;
-      await createCategory(targetSlug, { 
-        name: newCatName.trim(),
-        outlet_id: outlets[0]?.id
-      });
+      await createCategory(targetSlug, { name: newCatName.trim() });
       setNewCatName('');
       loadCategories();
     } catch (err) {

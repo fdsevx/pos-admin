@@ -32,6 +32,17 @@ export function formatRupiah(value: number | string | undefined): string {
 // Global cached token (can be stored in localStorage or cookie in real app)
 let authToken = '';
 
+export function getApiErrorMessage(data: unknown, fallback: string): string {
+  if (!data || typeof data !== 'object') return fallback;
+  const result = data as { message?: unknown; error?: unknown };
+  if (typeof result.message === 'string') return result.message;
+  if (typeof result.error === 'string') return result.error;
+  if (result.error && typeof result.error === 'object' && 'message' in result.error && typeof result.error.message === 'string') {
+    return result.error.message;
+  }
+  return fallback;
+}
+
 export function setAuthToken(token: string) {
   authToken = token;
   if (typeof window !== 'undefined') {
@@ -80,7 +91,7 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
       }
     }
 
-    throw new Error(errorData.message || errorData.error?.message || errorData.error || `HTTP error ${response.status}`);
+    throw new Error(getApiErrorMessage(errorData, `HTTP error ${response.status}`));
   }
 
   const result: any = await response.json();
@@ -91,13 +102,14 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
 }
 
 // ----------------- Auth API -----------------
-export async function loginAdmin(username: string = 'admin', password: string = 'admin123') {
+export async function loginAdmin(username: string, password: string) {
   const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
   });
   const data = await response.json();
+  if (!response.ok) throw new Error(getApiErrorMessage(data, 'Login gagal'));
   if (data.tokens?.access_token) {
     setAuthToken(data.tokens.access_token);
   }
@@ -187,7 +199,7 @@ export async function getProducts(outletSlug: string, category?: string): Promis
     outlet_type: item.outlet_name || item.outlet_type || 'Restoran',
     outlet_name: item.outlet_name || (item.outlet_type === 'CAFE' ? 'Cafe' : 'Restoran'),
     category: item.category_name || item.category || (item.categories?.name || 'Makanan'),
-  }));
+  })).filter(item => !category || item.category === category || item.category_id === category);
 }
 
 export async function createProduct(outletSlug: string, payload: Partial<Product> & any): Promise<Product> {
@@ -288,7 +300,8 @@ export async function deleteCategory(outletSlug: string, id: string): Promise<vo
 // ----------------- CRM & Pelanggan API -----------------
 export async function getCustomers(outletSlug: string): Promise<Customer[]> {
   if (outletSlug === 'ALL') return [];
-  return apiFetch<Customer[]>(`/v1/${outletSlug}/customers`);
+  const data = await apiFetch<(Customer & { total_spending?: string })[]>(`/v1/${outletSlug}/customers`);
+  return data.map(customer => ({ ...customer, total_spent: customer.total_spending ?? customer.total_spent ?? '0' }));
 }
 
 export async function createCustomer(outletSlug: string, payload: { name: string; phone?: string; member_type?: 'regular' | 'vip' }): Promise<Customer> {
@@ -363,7 +376,8 @@ export async function createExpense(outletSlug: string, payload: { category: str
 
 export async function getPurchases(outletSlug: string): Promise<Purchase[]> {
   if (outletSlug === 'ALL') return [];
-  return apiFetch<Purchase[]>(`/v1/${outletSlug}/purchases`);
+  const data = await apiFetch<(Purchase & { receipt_number?: string })[]>(`/v1/${outletSlug}/purchases`);
+  return data.map(purchase => ({ ...purchase, invoice_number: purchase.receipt_number ?? purchase.invoice_number }));
 }
 
 export async function createPurchase(outletSlug: string, payload: any): Promise<Purchase> {
